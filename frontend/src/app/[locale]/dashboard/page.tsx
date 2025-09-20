@@ -23,9 +23,10 @@ interface DriverLicense {
   admin_notes?: string
 }
 
-export default function DashboardPage() {
+export default function DashboardPage({ params }: { params: { locale: string } }) {
   const { user, logout, loading: authLoading } = useAuth()
   const router = useRouter()
+  const { locale } = params
   const [license, setLicense] = useState<DriverLicense | null>(null)
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -40,7 +41,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/')
+      router.push(`/${locale}`)
     }
   }, [authLoading, user, router])
 

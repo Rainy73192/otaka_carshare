@@ -13,7 +13,7 @@ import { Car, User, Shield, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 
-export default function HomePage() {
+export default function HomePage({ params }: { params: { locale: string } }) {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -21,6 +21,7 @@ export default function HomePage() {
   const { login, register } = useAuth()
   const router = useRouter()
   const t = useTranslations()
+  const { locale } = params
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,12 +31,12 @@ export default function HomePage() {
       if (isLogin) {
         await login(email, password)
         toast.success(t('auth.loginSuccess'))
-        router.push('/dashboard')
+        router.push(`/${locale}/dashboard`)
       } else {
         await register(email, password)
         // 注册成功后跳转到验证页面
         toast.success(t('auth.registerSuccess'))
-        router.push('/register-success')
+        router.push(`/${locale}/register-success`)
       }
     } catch (error: any) {
       toast.error(error.message || t('common.error'))
@@ -58,7 +59,7 @@ export default function HomePage() {
               <LanguageSwitcher />
               <Button
                 variant="outline"
-                onClick={() => router.push('/admin')}
+                onClick={() => router.push(`/${locale}/admin`)}
                 className="flex items-center space-x-2"
               >
                 <Shield className="h-4 w-4" />
