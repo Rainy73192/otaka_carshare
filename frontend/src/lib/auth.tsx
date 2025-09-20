@@ -68,8 +68,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('Login attempt with fetch:', { email, passwordLength: password.length })
-      
       // 使用fetch替代axios
       const response = await fetch('/api/v1/auth/login', {
         method: 'POST',

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -15,7 +15,7 @@ export function Button({
   onClick,
   ...props 
 }: ButtonProps) {
-  const baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed -webkit-tap-highlight-color: transparent -webkit-touch-callout: none -webkit-user-select: none touch-action: manipulation'
+  const baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed -webkit-tap-highlight-color: transparent -webkit-touch-callout: none -webkit-user-select: none'
   
   const variantClasses = {
     primary: 'bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white shadow-soft hover:shadow-medium focus:ring-primary-500 transform hover:scale-105 active:scale-95',
@@ -30,26 +30,38 @@ export function Button({
     lg: 'px-6 py-3 text-base min-h-[48px]'
   }
 
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const [touchHandled, setTouchHandled] = useState(false)
+
+  // 检测是否为触摸设备
+  useEffect(() => {
+    setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0)
+  }, [])
+
   // 处理移动端触摸事件
   const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
-    e.preventDefault()
     // 添加触摸反馈
     e.currentTarget.style.transform = 'scale(0.95)'
+    setTouchHandled(false)
   }
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
-    e.preventDefault()
     // 恢复原始大小
     e.currentTarget.style.transform = 'scale(1)'
-    // 触发点击事件
-    if (onClick) {
-      onClick(e as any)
+    
+    // 只在触摸设备上处理触摸事件，并阻止点击事件
+    if (isTouchDevice && !touchHandled) {
+      setTouchHandled(true)
+      e.preventDefault() // 阻止点击事件
+      if (onClick) {
+        onClick(e as any)
+      }
     }
   }
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    if (onClick) {
+    // 只在非触摸设备上处理点击事件，或者触摸设备上触摸事件未被处理
+    if ((!isTouchDevice || !touchHandled) && onClick) {
       onClick(e)
     }
   }
@@ -69,7 +81,6 @@ export function Button({
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',
         WebkitUserSelect: 'none',
-        touchAction: 'manipulation',
         minHeight: '44px', // iOS 推荐的最小触摸目标
         cursor: 'pointer'
       }}

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from fastapi import HTTPException, status
 from app.models.user import User, DriverLicense
 from app.schemas.user import UserCreate, DriverLicenseCreate, DriverLicenseUpdate
@@ -105,11 +105,48 @@ class UserService:
         existing_license = self.db.query(DriverLicense).filter(
             and_(DriverLicense.user_id == user_id, DriverLicense.license_type == license_data.license_type)
         ).first()
+        
         if existing_license:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Driver license {license_data.license_type} already exists for this user"
-            )
+            # If license exists and is not rejected, don't allow re-upload
+            if existing_license.status != "rejected":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Driver license {license_data.license_type} already exists for this user"
+                )
+            else:
+                # If license is rejected, update the existing record instead of creating new one
+                print(f"Updating rejected license {existing_license.id} for user {user_id}")
+                existing_license.file_name = license_data.file_name
+                existing_license.file_url = license_data.file_url
+                existing_license.file_size = license_data.file_size
+                existing_license.content_type = license_data.content_type
+                existing_license.status = "pending"  # Reset to pending for re-review
+                existing_license.admin_notes = None  # Clear previous admin notes
+                existing_license.updated_at = func.now()
+                
+                self.db.commit()
+                self.db.refresh(existing_license)
+                
+                # Send notification to admin
+                try:
+                    user = self.get_user_by_id(user_id)
+                    print(f"User found: {user}")
+                    if user:
+                        print(f"User email: {user.email}")
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    loop.run_until_complete(EmailService.send_license_uploaded_notification(
+                        settings.ADMIN_EMAIL, 
+                        user.email if user else "unknown@example.com", 
+                        user_id
+                    ))
+                    loop.close()
+                except Exception as e:
+                    print(f"Failed to send license notification: {e}")
+                    import traceback
+                    traceback.print_exc()
+                
+                return existing_license
         
         print(f"Creating DriverLicense object with file_name: {license_data.file_name}")
         db_license = DriverLicense(

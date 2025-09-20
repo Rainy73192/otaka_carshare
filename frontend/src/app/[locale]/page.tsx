@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { Car, User, Shield, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { mobileScrollToTop } from '@/lib/scrollUtils'
 
 export default function HomePage({ params }: { params: { locale: string } }) {
   const [isLogin, setIsLogin] = useState(true)
@@ -31,16 +32,38 @@ export default function HomePage({ params }: { params: { locale: string } }) {
       if (isLogin) {
         await login(email, password)
         toast.success(t('auth.loginSuccess'))
-        router.push(`/${locale}/dashboard`)
+        // 登录成功后滚动到顶部，然后跳转
+        mobileScrollToTop(100)
+        setTimeout(() => {
+          router.push(`/${locale}/dashboard`)
+        }, 300)
       } else {
         await register(email, password)
         // 注册成功后跳转到验证页面
         toast.success(t('auth.registerSuccess'))
-        router.push(`/${locale}/register-success`)
+        // 注册成功后滚动到顶部，然后跳转
+        mobileScrollToTop(100)
+        setTimeout(() => {
+          router.push(`/${locale}/register-success`)
+        }, 300)
       }
     } catch (error: any) {
       console.error('Auth error:', error)
-      const errorMessage = error.response?.data?.detail || error.message || t('common.error')
+      let errorMessage = t('common.error')
+      
+      // 根据错误类型显示不同的提示
+      if (error.message) {
+        if (error.message.includes('Incorrect email or password')) {
+          errorMessage = t('auth.loginError')
+        } else if (error.message.includes('User not found')) {
+          errorMessage = t('auth.loginError')
+        } else if (error.message.includes('Invalid credentials')) {
+          errorMessage = t('auth.loginError')
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
       toast.error(errorMessage)
     } finally {
       setLoading(false)
@@ -116,7 +139,6 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                     type="email"
                     value={email}
                     onChange={(e) => {
-                      console.log('Email changed:', e.target.value)
                       setEmail(e.target.value)
                     }}
                     placeholder={t('auth.email')}
@@ -134,7 +156,6 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                       type="password"
                       value={password}
                       onChange={(e) => {
-                        console.log('Password changed, length:', e.target.value.length)
                         setPassword(e.target.value)
                       }}
                       placeholder={t('auth.password')}
@@ -149,7 +170,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                     className="w-full"
                     disabled={loading}
                     onClick={(e) => {
-                      e.preventDefault()
+                      // 移除 preventDefault() 以避免被动事件监听器错误
                       // 直接调用handleSubmit，不依赖表单提交
                       handleSubmit(e as any)
                     }}

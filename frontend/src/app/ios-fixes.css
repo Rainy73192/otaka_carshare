@@ -23,7 +23,7 @@ button, .btn, [role="button"] {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  touch-action: manipulation;
+  /* touch-action: manipulation; */
 }
 
 /* Fix input zoom on iOS */

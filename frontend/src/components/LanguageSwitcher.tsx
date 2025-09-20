@@ -113,7 +113,7 @@ export default function LanguageSwitcher() {
               <button
                 key={language.code}
                 onClick={(e) => {
-                  e.preventDefault()
+                  // 移除 preventDefault() 以避免被动事件监听器错误
                   e.stopPropagation()
                   handleLanguageChange(language.code)
                 }}

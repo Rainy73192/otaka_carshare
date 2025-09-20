@@ -62,18 +62,18 @@ export function TabsTrigger({ value, children, className, onClick }: TabsTrigger
   const isActive = context.value === value
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
+    // 移除 preventDefault() 以避免被动事件监听器错误
     context.onValueChange(value)
     onClick?.()
   }
 
   const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
-    e.preventDefault()
+    // 移除 preventDefault() 以避免被动事件监听器错误
     e.currentTarget.style.transform = 'scale(0.95)'
   }
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
-    e.preventDefault()
+    // 移除 preventDefault() 以避免被动事件监听器错误
     e.currentTarget.style.transform = 'scale(1)'
     context.onValueChange(value)
     onClick?.()
@@ -82,7 +82,7 @@ export function TabsTrigger({ value, children, className, onClick }: TabsTrigger
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 -webkit-tap-highlight-color: transparent -webkit-touch-callout: none -webkit-user-select: none touch-action: manipulation',
+        'inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 -webkit-tap-highlight-color: transparent -webkit-touch-callout: none -webkit-user-select: none',
         isActive && 'bg-white text-gray-900 shadow-sm',
         !isActive && 'text-gray-600 hover:text-gray-900',
         className
@@ -94,7 +94,6 @@ export function TabsTrigger({ value, children, className, onClick }: TabsTrigger
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',
         WebkitUserSelect: 'none',
-        touchAction: 'manipulation',
         minHeight: '36px',
         cursor: 'pointer'
       }}

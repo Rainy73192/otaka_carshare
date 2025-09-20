@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Shield, Users, FileImage, CheckCircle, XCircle, Clock, LogOut, Search, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
-import axios from 'axios'
+// 移除axios导入，改用fetch
 
 interface User {
   id: number
@@ -32,8 +32,16 @@ interface DriverLicense {
   admin_notes?: string
 }
 
-interface LicenseWithUser extends DriverLicense {
+interface CombinedLicense {
+  user_id: number
   user: User
+  licenses: {
+    front?: DriverLicense
+    back?: DriverLicense
+  }
+  status: string
+  admin_notes: string | null
+  created_at: string
 }
 
 export default function AdminPage() {
@@ -43,11 +51,12 @@ export default function AdminPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [licenses, setLicenses] = useState<LicenseWithUser[]>([])
+  const [licenses, setLicenses] = useState<CombinedLicense[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedLicense, setSelectedLicense] = useState<LicenseWithUser | null>(null)
+  const [selectedLicense, setSelectedLicense] = useState<CombinedLicense | null>(null)
   const [adminNotes, setAdminNotes] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
+  const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     if (user && user.is_admin) {
@@ -69,7 +78,17 @@ export default function AdminPage() {
       await adminLogin(email, password)
       toast.success('管理员登录成功！')
     } catch (error: any) {
-      toast.error(error.message || '登录失败')
+      let errorMessage = '登录失败'
+      if (error.message) {
+        if (error.message.includes('Incorrect email or password')) {
+          errorMessage = '用户名或密码错误'
+        } else if (error.message.includes('not an admin')) {
+          errorMessage = '您没有管理员权限'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -77,32 +96,64 @@ export default function AdminPage() {
 
   const fetchLicenses = async () => {
     try {
-      const response = await axios.get('/api/v1/admin/driver-licenses')
-      setLicenses(response.data)
+      const token = localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1] || ''
+      
+      const response = await fetch('/api/v1/admin/driver-licenses', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setLicenses(data)
+      } else {
+        throw new Error(`HTTP ${response.status}`)
+      }
     } catch (error) {
+      console.error('获取驾照列表错误:', error)
       toast.error('获取驾照列表失败')
     }
   }
 
-  const updateLicenseStatus = async (licenseId: number, status: 'approved' | 'rejected') => {
+  const updateLicenseStatus = async (userId: number, status: 'approved' | 'rejected') => {
+    setIsUpdating(true)
     try {
-      await axios.put(`/api/v1/admin/driver-licenses/${licenseId}`, {
-        status,
-        admin_notes: adminNotes
+      const token = localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1] || ''
+      
+      const response = await fetch(`/api/v1/admin/driver-licenses/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status,
+          admin_notes: adminNotes
+        })
       })
       
-      toast.success('状态更新成功！')
-      setSelectedLicense(null)
-      setAdminNotes('')
-      fetchLicenses()
+      if (response.ok) {
+        toast.success('状态更新成功！')
+        setSelectedLicense(null)
+        setAdminNotes('')
+        await fetchLicenses()
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || `HTTP ${response.status}`)
+      }
     } catch (error) {
+      console.error('更新状态错误:', error)
       toast.error('更新失败')
+    } finally {
+      setIsUpdating(false)
     }
   }
 
   const filteredLicenses = licenses.filter(license => {
-    const matchesSearch = (license.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
-                         (license.file_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
+    const matchesSearch = license.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false
     const matchesStatus = statusFilter === 'all' || license.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -346,7 +397,7 @@ export default function AdminPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredLicenses.map((license) => (
-                    <tr key={license.id} className="hover:bg-gray-50">
+                    <tr key={license.user_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{license.user?.email || '未知邮箱'}</div>
@@ -354,16 +405,25 @@ export default function AdminPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <FileImage className="h-8 w-8 text-gray-400 mr-3" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {license.license_type === 'front' ? '驾照正面' : '驾照反面'} - {license.file_name}
+                        <div className="space-y-2">
+                          {license.licenses.front && (
+                            <div className="flex items-center">
+                              <FileImage className="h-6 w-6 text-gray-400 mr-2" />
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">驾照正面</div>
+                                <div className="text-xs text-gray-500">{license.licenses.front.file_name}</div>
+                              </div>
                             </div>
-                            <div className="text-sm text-gray-500">
-                              {(license.file_size / 1024 / 1024).toFixed(2)} MB
+                          )}
+                          {license.licenses.back && (
+                            <div className="flex items-center">
+                              <FileImage className="h-6 w-6 text-gray-400 mr-2" />
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">驾照反面</div>
+                                <div className="text-xs text-gray-500">{license.licenses.back.file_name}</div>
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -399,7 +459,16 @@ export default function AdminPage() {
       {/* License Detail Modal */}
       {selectedLicense && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+            {/* Loading Overlay */}
+            {isUpdating && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+                  <p className="text-sm text-gray-600">正在处理中...</p>
+                </div>
+              </div>
+            )}
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">驾照详情</h3>
@@ -407,6 +476,7 @@ export default function AdminPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedLicense(null)}
+                  disabled={isUpdating}
                 >
                   ×
                 </Button>
@@ -416,14 +486,6 @@ export default function AdminPage() {
                 <div>
                   <Label>用户邮箱</Label>
                   <p className="text-gray-900">{selectedLicense.user?.email || '未知邮箱'}</p>
-                </div>
-                
-                <div>
-                  <Label>文件信息</Label>
-                  <p className="text-gray-900">{selectedLicense.file_name}</p>
-                  <p className="text-sm text-gray-500">
-                    {(selectedLicense.file_size / 1024 / 1024).toFixed(2)} MB
-                  </p>
                 </div>
                 
                 <div>
@@ -438,12 +500,42 @@ export default function AdminPage() {
                 
                 <div>
                   <Label>驾照图片</Label>
-                  <div className="mt-2">
-                    <img
-                      src={`${process.env.NEXT_PUBLIC_API_URL}${selectedLicense.file_url}`}
-                      alt="Driver License"
-                      className="max-w-full h-auto rounded-lg border border-gray-200"
-                    />
+                  <div className="mt-2 space-y-4">
+                    {selectedLicense.licenses.front && (
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">驾照正面</h4>
+                        <img
+                          src={selectedLicense.licenses.front.file_url}
+                          alt="Driver License Front"
+                          className="max-w-full h-auto rounded-lg border border-gray-200"
+                          onError={(e) => {
+                            console.error('图片加载失败:', selectedLicense.licenses.front?.file_url)
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {selectedLicense.licenses.front.file_name} ({(selectedLicense.licenses.front.file_size / 1024 / 1024).toFixed(2)} MB)
+                        </p>
+                      </div>
+                    )}
+                    
+                    {selectedLicense.licenses.back && (
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">驾照反面</h4>
+                        <img
+                          src={selectedLicense.licenses.back.file_url}
+                          alt="Driver License Back"
+                          className="max-w-full h-auto rounded-lg border border-gray-200"
+                          onError={(e) => {
+                            console.error('图片加载失败:', selectedLicense.licenses.back?.file_url)
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {selectedLicense.licenses.back.file_name} ({(selectedLicense.licenses.back.file_size / 1024 / 1024).toFixed(2)} MB)
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -456,23 +548,26 @@ export default function AdminPage() {
                         value={adminNotes}
                         onChange={(e) => setAdminNotes(e.target.value)}
                         placeholder="请输入审核备注..."
-                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         rows={3}
+                        disabled={isUpdating}
                       />
                     </div>
                     
                     <div className="flex space-x-3">
                       <Button
-                        onClick={() => updateLicenseStatus(selectedLicense.id, 'approved')}
+                        onClick={() => updateLicenseStatus(selectedLicense.user_id, 'approved')}
                         className="flex-1"
+                        disabled={isUpdating}
                       >
                         <CheckCircle className="h-4 w-4 mr-2" />
                         通过
                       </Button>
                       <Button
                         variant="secondary"
-                        onClick={() => updateLicenseStatus(selectedLicense.id, 'rejected')}
+                        onClick={() => updateLicenseStatus(selectedLicense.user_id, 'rejected')}
                         className="flex-1"
+                        disabled={isUpdating}
                       >
                         <XCircle className="h-4 w-4 mr-2" />
                         拒绝

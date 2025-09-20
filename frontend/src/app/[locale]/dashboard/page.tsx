@@ -345,6 +345,8 @@ export default function DashboardPage({ params }: { params: { locale: string } }
         toast.success('驾照上传成功！')
         setSelectedFiles({front: null, back: null})
         fetchLicense()
+        // 上传成功后滚动到顶部
+        mobileScrollToTop(200)
       } else {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.detail || `HTTP ${response.status}`)
