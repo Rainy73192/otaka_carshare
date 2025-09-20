@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { CheckCircle, XCircle, Mail, RefreshCw } from 'lucide-react'
@@ -11,6 +12,7 @@ import axios from 'axios'
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const t = useTranslations()
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'pending'>('loading')
   const [message, setMessage] = useState('')
   const [email, setEmail] = useState('')
@@ -22,7 +24,7 @@ export default function VerifyEmailPage() {
       verifyEmail(token)
     } else {
       setStatus('pending')
-      setMessage('请检查您的邮箱中的验证链接')
+      setMessage(t('verification.checkEmail'))
     }
   }, [searchParams])
 
@@ -48,7 +50,7 @@ export default function VerifyEmailPage() {
 
   const resendVerification = async () => {
     if (!email) {
-      toast.error('请输入邮箱地址')
+      toast.error(t('verification.enterEmail'))
       return
     }
 
@@ -57,10 +59,10 @@ export default function VerifyEmailPage() {
       await axios.post('http://localhost:8001/api/v1/auth/resend-verification', {
         email: email
       })
-      toast.success('验证邮件已重新发送')
+      toast.success(t('verification.resendSuccess'))
     } catch (error: any) {
       console.error('重发邮件错误:', error)
-      toast.error(error.response?.data?.detail || '发送失败')
+      toast.error(error.response?.data?.detail || t('verification.resendError'))
     } finally {
       setResending(false)
     }
@@ -102,10 +104,10 @@ export default function VerifyEmailPage() {
             </div>
             
             <h2 className={`mt-6 text-3xl font-bold ${getStatusColor()}`}>
-              {status === 'success' && '验证成功！'}
-              {status === 'error' && '验证失败'}
-              {status === 'pending' && '等待验证'}
-              {status === 'loading' && '正在验证...'}
+              {status === 'success' && t('verification.verificationSuccess')}
+              {status === 'error' && t('verification.verificationFailed')}
+              {status === 'pending' && t('verification.waitingVerification')}
+              {status === 'loading' && t('verification.verifying')}
             </h2>
             
             <p className="mt-4 text-gray-600">
@@ -115,13 +117,13 @@ export default function VerifyEmailPage() {
             {status === 'success' && (
               <div className="mt-6">
                 <p className="text-sm text-gray-500">
-                  3秒后自动跳转到登录页面...
+                  {t('verification.autoRedirect')}
                 </p>
                 <Button
                   onClick={() => router.push('/')}
                   className="mt-4"
                 >
-                  立即登录
+                  {t('verification.loginNow')}
                 </Button>
               </div>
             )}
@@ -130,14 +132,14 @@ export default function VerifyEmailPage() {
               <div className="mt-6 space-y-4">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    重新发送验证邮件
+                    {t('verification.resendVerification')}
                   </label>
                   <input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="请输入您的邮箱地址"
+                    placeholder={t('verification.enterEmail')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -149,10 +151,10 @@ export default function VerifyEmailPage() {
                   {resending ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      发送中...
+                      {t('common.loading')}
                     </>
                   ) : (
-                    '重新发送验证邮件'
+                    t('verification.resendVerification')
                   )}
                 </Button>
                 <Button
@@ -160,7 +162,7 @@ export default function VerifyEmailPage() {
                   variant="outline"
                   className="w-full"
                 >
-                  返回登录
+                  {t('verification.returnToLogin')}
                 </Button>
               </div>
             )}
@@ -169,14 +171,14 @@ export default function VerifyEmailPage() {
               <div className="mt-6 space-y-4">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    重新发送验证邮件
+                    {t('verification.resendVerification')}
                   </label>
                   <input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="请输入您的邮箱地址"
+                    placeholder={t('verification.enterEmail')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -188,10 +190,10 @@ export default function VerifyEmailPage() {
                   {resending ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      发送中...
+                      {t('common.loading')}
                     </>
                   ) : (
-                    '重新发送验证邮件'
+                    t('verification.resendVerification')
                   )}
                 </Button>
                 <Button
@@ -199,7 +201,7 @@ export default function VerifyEmailPage() {
                   variant="outline"
                   className="w-full"
                 >
-                  返回登录
+                  {t('verification.returnToLogin')}
                 </Button>
               </div>
             )}

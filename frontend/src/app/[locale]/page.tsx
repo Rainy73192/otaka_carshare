@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -10,6 +11,7 @@ import { Label } from '@/components/ui/Label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { Car, User, Shield, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function HomePage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -18,6 +20,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false)
   const { login, register } = useAuth()
   const router = useRouter()
+  const t = useTranslations()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,16 +29,16 @@ export default function HomePage() {
     try {
       if (isLogin) {
         await login(email, password)
-        toast.success('登录成功！')
+        toast.success(t('auth.loginSuccess'))
         router.push('/dashboard')
       } else {
         await register(email, password)
         // 注册成功后跳转到验证页面
-        toast.success('注册成功！请检查您的邮箱')
+        toast.success(t('auth.registerSuccess'))
         router.push('/register-success')
       }
     } catch (error: any) {
-      toast.error(error.message || '操作失败')
+      toast.error(error.message || t('common.error'))
     } finally {
       setLoading(false)
     }
@@ -51,14 +54,17 @@ export default function HomePage() {
               <Car className="h-8 w-8 text-primary-500" />
               <h1 className="text-2xl font-bold text-gray-900">Otaka 租车</h1>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => router.push('/admin')}
-              className="flex items-center space-x-2"
-            >
-              <Shield className="h-4 w-4" />
-              <span>管理端</span>
-            </Button>
+            <div className="flex items-center space-x-4">
+              <LanguageSwitcher />
+              <Button
+                variant="outline"
+                onClick={() => router.push('/admin')}
+                className="flex items-center space-x-2"
+              >
+                <Shield className="h-4 w-4" />
+                <span>{t('navigation.admin')}</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -72,10 +78,10 @@ export default function HomePage() {
                 <User className="h-8 w-8 text-primary-500" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {isLogin ? '欢迎回来' : '创建账户'}
+                {isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}
               </h2>
               <p className="text-gray-600">
-                {isLogin ? '登录您的账户' : '注册新账户开始使用'}
+                {isLogin ? t('auth.loginYourAccount') : t('auth.createAccount')}
               </p>
             </div>
 
@@ -86,40 +92,40 @@ export default function HomePage() {
                   onClick={() => setIsLogin(true)}
                   className="data-[state=active]:bg-primary-500 data-[state=active]:text-white"
                 >
-                  登录
+                  {t('auth.login')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="register" 
                   onClick={() => setIsLogin(false)}
                   className="data-[state=active]:bg-primary-500 data-[state=active]:text-white"
                 >
-                  注册
+                  {t('auth.register')}
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value={isLogin ? 'login' : 'register'}>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <Label htmlFor="email">邮箱地址</Label>
+                    <Label htmlFor="email">{t('auth.email')}</Label>
                     <Input
                       id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="请输入您的邮箱"
+                      placeholder={t('auth.email')}
                       required
                       className="mt-1"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="password">密码</Label>
+                    <Label htmlFor="password">{t('auth.password')}</Label>
                     <Input
                       id="password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="请输入您的密码"
+                      placeholder={t('auth.password')}
                       required
                       className="mt-1"
                     />
@@ -130,7 +136,7 @@ export default function HomePage() {
                     className="w-full"
                     disabled={loading}
                   >
-                    {loading ? '处理中...' : (isLogin ? '登录' : '注册')}
+                    {loading ? t('common.loading') : (isLogin ? t('auth.login') : t('auth.register'))}
                   </Button>
                 </form>
               </TabsContent>
@@ -138,14 +144,14 @@ export default function HomePage() {
 
             <div className="mt-8 text-center">
               <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-                <div className="flex items-center space-x-1">
-                  <Upload className="h-4 w-4" />
-                  <span>上传驾照</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Shield className="h-4 w-4" />
-                  <span>安全认证</span>
-                </div>
+              <div className="flex items-center space-x-1">
+                <Upload className="h-4 w-4" />
+                <span>{t('features.uploadLicense')}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Shield className="h-4 w-4" />
+                <span>{t('features.secureAuth')}</span>
+              </div>
               </div>
             </div>
           </Card>

@@ -1,12 +1,18 @@
+const withNextIntl = require('next-intl/plugin')(
+  './src/i18n.ts'
+);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  images: {
-    domains: ['localhost', 'minio'],
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:8001/api/:path*',
+      },
+    ];
   },
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001',
-  },
-}
+  trailingSlash: false,
+};
 
-module.exports = nextConfig
+module.exports = withNextIntl(nextConfig);
