@@ -51,21 +51,22 @@ export default function HomePage({ params }: { params: { locale: string } }) {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
       <header className="bg-white shadow-soft">
-        <div className="container-custom py-4">
+        <div className="container-custom py-4 sm:py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Car className="h-8 w-8 text-primary-500" />
-              <h1 className="text-2xl font-bold text-gray-900">Otaka 租车</h1>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <Car className="h-8 w-8 sm:h-10 sm:w-10 text-primary-500" />
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Otaka 租车</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4 lg:space-x-6">
               <LanguageSwitcher />
               <Button
                 variant="outline"
                 onClick={() => router.push(`/${locale}/admin`)}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm"
               >
-                <Shield className="h-4 w-4" />
-                <span>{t('navigation.admin')}</span>
+                <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">{t('navigation.admin')}</span>
+                <span className="sm:hidden">管理</span>
               </Button>
             </div>
           </div>
@@ -75,7 +76,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
       {/* Main Content */}
       <main className="container-custom py-12">
         <div className="max-w-md mx-auto">
-          <Card className="p-8">
+          <Card className="p-8" style={{ zIndex: 1 }}>
             <div className="text-center mb-8">
               <div className="mx-auto w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-4">
                 <User className="h-8 w-8 text-primary-500" />

@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import axios from 'axios'
 import Cookies from 'js-cookie'
 import toast from 'react-hot-toast'
 
@@ -28,9 +27,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
 
-// Configure axios defaults
-axios.defaults.baseURL = API_URL
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
@@ -42,18 +38,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const savedToken = Cookies.get('token')
       if (savedToken) {
         setToken(savedToken)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
         
         try {
-          const response = await axios.get('/api/v1/auth/me')
-          setUser(response.data)
+          const response = await fetch('/api/v1/auth/me', {
+            headers: {
+              'Authorization': `Bearer ${savedToken}`
+            }
+          })
+          
+          if (response.ok) {
+            const userData = await response.json()
+            setUser(userData)
+          } else {
+            throw new Error('Token validation failed')
+          }
         } catch (error) {
           console.error('Token validation failed:', error)
           // Token is invalid, clear it
           Cookies.remove('token')
           setToken(null)
           setUser(null)
-          delete axios.defaults.headers.common['Authorization']
         }
       }
       setLoading(false)
@@ -85,7 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { access_token } = data
       setToken(access_token)
       Cookies.set('token', access_token, { expires: 7 })
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
       
       // Get user info using fetch
       const userResponse = await fetch('/api/v1/auth/me', {
@@ -108,38 +111,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (email: string, password: string): Promise<any> => {
     try {
-      const response = await axios.post('/api/v1/auth/register', {
-        email,
-        password
+      const response = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
       })
-      // 注册成功，返回响应数据
-      return response.data
-    } catch (error: any) {
-      // 检查是否是验证邮件发送的情况
-      if (error.response?.status === 200) {
-        return error.response.data
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        // 注册成功，返回响应数据
+        return data
+      } else {
+        throw new Error(data.detail || '注册失败')
       }
-      throw new Error(error.response?.data?.detail || '注册失败')
+    } catch (error: any) {
+      throw new Error(error.message || '注册失败')
     }
   }
 
   const adminLogin = async (email: string, password: string) => {
     try {
-      const response = await axios.post('/api/v1/auth/admin/login', {
-        email,
-        password
+      const response = await fetch('/api/v1/auth/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
       })
       
-      const { access_token } = response.data
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || `HTTP ${response.status}`)
+      }
+      
+      const data = await response.json()
+      const { access_token } = data
       setToken(access_token)
       Cookies.set('token', access_token, { expires: 7 })
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
       
       // Get user info
-      const userResponse = await axios.get('/api/v1/auth/me')
-      setUser(userResponse.data)
+      const userResponse = await fetch('/api/v1/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${access_token}`
+        }
+      })
+      
+      if (!userResponse.ok) {
+        throw new Error('Failed to get user info')
+      }
+      
+      const userData = await userResponse.json()
+      setUser(userData)
     } catch (error: any) {
-      throw new Error(error.response?.data?.detail || '管理员登录失败')
+      throw new Error(error.message || '管理员登录失败')
     }
   }
 
@@ -147,7 +174,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     setToken(null)
     Cookies.remove('token')
-    delete axios.defaults.headers.common['Authorization']
     router.push('/')
   }
 

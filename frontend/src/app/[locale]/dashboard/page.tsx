@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Upload, FileImage, CheckCircle, Clock, XCircle, LogOut, User, Camera } from 'lucide-react'
 import toast from 'react-hot-toast'
-import axios from 'axios'
+// 移除axios导入，改用fetch
 import { CameraUpload } from '@/components/ui/CameraUpload'
+import { mobileScrollToTop } from '@/lib/scrollUtils'
 
 interface DriverLicense {
   id: number
@@ -49,12 +50,29 @@ export default function DashboardPage({ params }: { params: { locale: string } }
 
   const fetchLicense = async () => {
     try {
-      const response = await axios.get('/api/v1/users/my-license')
-      setLicenses(response.data)
-    } catch (error: any) {
-      if (error.response?.status !== 404) {
+      // 添加时间戳参数防止缓存
+      const timestamp = new Date().getTime()
+      const token = localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1] || ''
+      
+      const response = await fetch(`/api/v1/users/my-license?t=${timestamp}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setLicenses(data)
+      } else if (response.status !== 404) {
         toast.error('获取驾照信息失败')
       }
+    } catch (error: any) {
+      console.error('获取驾照信息错误:', error)
+      toast.error('获取驾照信息失败')
     } finally {
       setLoading(false)
     }
@@ -63,6 +81,9 @@ export default function DashboardPage({ params }: { params: { locale: string } }
   const startCamera = async (mode: 'front' | 'back') => {
     try {
       console.log(`Starting camera for ${mode}`)
+      
+      // 点击拍照按钮时立即滚动到顶部
+      mobileScrollToTop(100)
       
       // 设置上传模式
       setUploadMode(mode)
@@ -235,6 +256,9 @@ export default function DashboardPage({ params }: { params: { locale: string } }
                 toast.success(`已添加${mode === 'front' ? '正面' : '反面'}照片`)
               }
               cleanup()
+              
+              // 拍照完成后自动滚动到页面顶部 - 移动端优化
+              mobileScrollToTop(300)
             }
           }, 'image/jpeg', 0.8)
         }
@@ -273,6 +297,9 @@ export default function DashboardPage({ params }: { params: { locale: string } }
         setUploadMode(undefined)
         setShowCameraUpload(false)
         toast.success(`已添加${uploadMode === 'front' ? '正面' : '反面'}照片`)
+        
+        // 文件选择完成后自动滚动到页面顶部 - 移动端优化
+        mobileScrollToTop(200)
       } else {
         console.error('No uploadMode set, cannot assign file')
         toast.error('无法确定照片类型，请重试')
@@ -292,24 +319,42 @@ export default function DashboardPage({ params }: { params: { locale: string } }
       formData.append('front_image', selectedFiles.front)
       formData.append('back_image', selectedFiles.back)
 
+      console.log('开始上传文件...')
+      console.log('Front file:', selectedFiles.front.name, selectedFiles.front.size)
+      console.log('Back file:', selectedFiles.back.name, selectedFiles.back.size)
+      
+      const token = localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1] || ''
+      console.log('Token available:', !!token)
+
+      // 使用fetch进行文件上传，确保在ngrok环境下正常工作
       const response = await fetch('/api/v1/auth/upload-license', {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1] || ''}`
+          'Authorization': `Bearer ${token}`
+          // 注意：不设置Content-Type，让浏览器自动设置multipart/form-data边界
         }
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
+      console.log('上传响应:', response.status)
+
+      // fetch响应处理
+      if (response.ok) {
+        const data = await response.json()
+        console.log('上传成功:', data)
+        toast.success('驾照上传成功！')
+        setSelectedFiles({front: null, back: null})
+        fetchLicense()
+      } else {
+        const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.detail || `HTTP ${response.status}`)
       }
-
-      toast.success('驾照上传成功！')
-      setSelectedFiles({front: null, back: null})
-      fetchLicense()
     } catch (error: any) {
-      toast.error(error.message || '上传失败')
+      console.error('上传错误:', error)
+      console.error('错误消息:', error.message)
+      
+      const errorMessage = error.message || '上传失败'
+      toast.error(errorMessage)
     } finally {
       setUploading(false)
     }
@@ -422,6 +467,9 @@ export default function DashboardPage({ params }: { params: { locale: string } }
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
+                                  // 点击重新拍照按钮时立即滚动到顶部
+                                  mobileScrollToTop(100)
+                                  
                                   setUploadMode('front')
                                   startCamera('front')
                                 }}
@@ -432,6 +480,9 @@ export default function DashboardPage({ params }: { params: { locale: string } }
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
+                                  // 点击重新选择按钮时立即滚动到顶部
+                                  mobileScrollToTop(100)
+                                  
                                   setUploadMode('front')
                                   const input = document.createElement('input')
                                   input.type = 'file'
@@ -464,6 +515,9 @@ export default function DashboardPage({ params }: { params: { locale: string } }
                               
                               <Button
                                 onClick={() => {
+                                  // 点击相册按钮时立即滚动到顶部
+                                  mobileScrollToTop(100)
+                                  
                                   setUploadMode('front')
                                   const input = document.createElement('input')
                                   input.type = 'file'
@@ -502,6 +556,9 @@ export default function DashboardPage({ params }: { params: { locale: string } }
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
+                                  // 点击重新拍照按钮时立即滚动到顶部
+                                  mobileScrollToTop(100)
+                                  
                                   setUploadMode('back')
                                   startCamera('back')
                                 }}
@@ -512,6 +569,9 @@ export default function DashboardPage({ params }: { params: { locale: string } }
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
+                                  // 点击重新选择按钮时立即滚动到顶部
+                                  mobileScrollToTop(100)
+                                  
                                   setUploadMode('back')
                                   const input = document.createElement('input')
                                   input.type = 'file'
@@ -532,6 +592,9 @@ export default function DashboardPage({ params }: { params: { locale: string } }
                             <div className="grid grid-cols-2 gap-2">
                               <Button
                                 onClick={() => {
+                                  // 点击拍照按钮时立即滚动到顶部
+                                  mobileScrollToTop(100)
+                                  
                                   setUploadMode('back')
                                   startCamera('back')
                                 }}
@@ -544,6 +607,9 @@ export default function DashboardPage({ params }: { params: { locale: string } }
                               
                               <Button
                                 onClick={() => {
+                                  // 点击相册按钮时立即滚动到顶部
+                                  mobileScrollToTop(100)
+                                  
                                   setUploadMode('back')
                                   const input = document.createElement('input')
                                   input.type = 'file'

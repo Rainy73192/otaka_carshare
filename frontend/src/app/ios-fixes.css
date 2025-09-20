@@ -226,3 +226,21 @@ select {
   -webkit-object-fit: contain;
   object-fit: contain;
 }
+
+/* 优化移动端滚动体验 */
+html {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* 确保滚动容器在iOS上正常工作 */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}

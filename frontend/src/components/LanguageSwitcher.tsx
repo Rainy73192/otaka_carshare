@@ -3,7 +3,8 @@
 import { useLocale } from 'next-intl'
 import { useRouter, usePathname } from 'next/navigation'
 import { Globe } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 const languages = [
   { code: 'zh-CN', name: '简体中文', flag: '🇨🇳' },
@@ -17,8 +18,39 @@ export default function LanguageSwitcher() {
   const router = useRouter()
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const [buttonRect, setButtonRect] = useState<DOMRect | null>(null)
 
   const currentLanguage = languages.find(lang => lang.code === locale) || languages[0]
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      setButtonRect(buttonRef.current.getBoundingClientRect())
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+      if (buttonRef.current && !buttonRef.current.contains(target)) {
+        // 检查点击的是否是下拉菜单内的元素
+        const dropdown = document.querySelector('[data-language-dropdown]')
+        if (!dropdown || !dropdown.contains(target)) {
+          setIsOpen(false)
+        }
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   const handleLanguageChange = (newLocale: string) => {
     // Remove the current locale from the pathname
@@ -28,9 +60,28 @@ export default function LanguageSwitcher() {
     setIsOpen(false)
   }
 
+  if (!mounted) {
+    return (
+      <div className="relative">
+        <button
+          ref={buttonRef}
+          className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <Globe className="h-4 w-4" />
+          <span>{currentLanguage.flag}</span>
+          <span>{currentLanguage.name}</span>
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
@@ -47,13 +98,25 @@ export default function LanguageSwitcher() {
         </svg>
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+      {isOpen && buttonRect && createPortal(
+        <div 
+          data-language-dropdown
+          className="fixed bg-white border border-gray-300 rounded-md shadow-2xl z-[99999]"
+          style={{
+            top: buttonRect.bottom + 8,
+            right: window.innerWidth - buttonRect.right,
+            width: '192px'
+          }}
+        >
           <div className="py-1">
             {languages.map((language) => (
               <button
                 key={language.code}
-                onClick={() => handleLanguageChange(language.code)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  handleLanguageChange(language.code)
+                }}
                 className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center space-x-3 ${
                   locale === language.code ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
                 }`}
@@ -68,7 +131,8 @@ export default function LanguageSwitcher() {
               </button>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

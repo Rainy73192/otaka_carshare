@@ -5,6 +5,7 @@ import { Button } from './Button'
 import { Card } from './Card'
 import { Camera, Image, X, RotateCcw, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { mobileScrollToTop } from '@/lib/scrollUtils'
 
 interface CameraUploadProps {
   onFileSelect: (file: File) => void
@@ -106,6 +107,9 @@ export function CameraUpload({ onFileSelect, onClose, isOpen, uploadMode }: Came
     if (selectedFile) {
       onFileSelect(selectedFile)
       onClose()
+      
+      // 拍照完成后自动滚动到页面顶部 - 移动端优化
+      mobileScrollToTop(200)
     }
   }
 

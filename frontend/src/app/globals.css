@@ -19,6 +19,9 @@
     padding: 0;
     height: 100%;
     overflow-x: hidden;
+    /* 优化移动端滚动体验 */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
   
   * {
