@@ -8,17 +8,17 @@ from app.services.user_service import UserService
 
 router = APIRouter()
 
-def verify_admin(token: str = Depends(verify_token)):
-    if not token.get("is_admin"):
+def verify_admin(token_data: dict = Depends(verify_token)):
+    if not token_data.get("is_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    return token
+    return token_data
 
 @router.get("/users", response_model=List[UserResponse])
 def get_all_users(
-    token: str = Depends(verify_admin),
+    token_data: dict = Depends(verify_admin),
     db: Session = Depends(get_db)
 ):
     user_service = UserService(db)
@@ -26,7 +26,7 @@ def get_all_users(
 
 @router.get("/driver-licenses", response_model=List[DriverLicenseResponse])
 def get_all_driver_licenses(
-    token: str = Depends(verify_admin),
+    token_data: dict = Depends(verify_admin),
     db: Session = Depends(get_db)
 ):
     user_service = UserService(db)
@@ -36,7 +36,7 @@ def get_all_driver_licenses(
 def update_driver_license_status(
     license_id: int,
     update_data: DriverLicenseUpdate,
-    token: str = Depends(verify_admin),
+    token_data: dict = Depends(verify_admin),
     db: Session = Depends(get_db)
 ):
     user_service = UserService(db)
@@ -46,7 +46,7 @@ def update_driver_license_status(
 @router.get("/driver-licenses/{license_id}")
 def get_driver_license_details(
     license_id: int,
-    token: str = Depends(verify_admin),
+    token_data: dict = Depends(verify_admin),
     db: Session = Depends(get_db)
 ):
     user_service = UserService(db)

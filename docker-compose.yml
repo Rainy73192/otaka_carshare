@@ -46,10 +46,10 @@ services:
       ADMIN_EMAIL: admin@otaka.com
       ADMIN_PASSWORD: admin123
       # Email settings (需要配置真实的邮件服务)
-      MAIL_USERNAME: your-email@gmail.com
-      MAIL_PASSWORD: your-app-password
-      MAIL_FROM: your-email@gmail.com
-      MAIL_FROM_NAME: Otaka 租车系统
+      MAIL_USERNAME: wanglongyu1208@gmail.com
+      MAIL_PASSWORD: xwpadpqmuzzupbyk
+      MAIL_FROM: wanglongyu1208@gmail.com
+      MAIL_FROM_NAME: otaka_carshare
       MAIL_PORT: 587
       MAIL_SERVER: smtp.gmail.com
       MAIL_STARTTLS: true

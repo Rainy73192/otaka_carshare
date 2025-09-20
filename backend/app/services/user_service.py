@@ -3,7 +3,7 @@ from sqlalchemy import and_
 from fastapi import HTTPException, status
 from app.models.user import User, DriverLicense
 from app.schemas.user import UserCreate, UserLogin, DriverLicenseCreate, DriverLicenseUpdate
-from app.core.security import verify_password, get_password_hash, verify_token
+from app.core.security import verify_password, get_password_hash
 from app.core.config import settings
 from app.core.email import EmailService
 from typing import List, Optional

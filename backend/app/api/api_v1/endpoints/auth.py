@@ -50,9 +50,9 @@ def admin_login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/me", response_model=UserResponse)
-def get_current_user(token: str = Depends(verify_token), db: Session = Depends(get_db)):
+def get_current_user(token_data: dict = Depends(verify_token), db: Session = Depends(get_db)):
     user_service = UserService(db)
-    user = user_service.get_user_by_email(token["sub"])
+    user = user_service.get_user_by_email(token_data["sub"])
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -63,7 +63,7 @@ def get_current_user(token: str = Depends(verify_token), db: Session = Depends(g
 @router.post("/upload-license")
 def upload_driver_license(
     file: UploadFile = File(...),
-    token: str = Depends(verify_token),
+    token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db)
 ):
     # Check if file is an image
@@ -95,7 +95,7 @@ def upload_driver_license(
         
         # Save to database
         user_service = UserService(db)
-        user = user_service.get_user_by_email(token["sub"])
+        user = user_service.get_user_by_email(token_data["sub"])
         
         license_data = {
             "file_name": unique_filename,
