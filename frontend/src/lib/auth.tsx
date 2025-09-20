@@ -1,0 +1,143 @@
+'use client'
+
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
+import axios from 'axios'
+import Cookies from 'js-cookie'
+import toast from 'react-hot-toast'
+
+interface User {
+  id: number
+  email: string
+  is_active: boolean
+  is_admin: boolean
+  created_at: string
+}
+
+interface AuthContextType {
+  user: User | null
+  token: string | null
+  login: (email: string, password: string) => Promise<void>
+  register: (email: string, password: string) => Promise<void>
+  adminLogin: (email: string, password: string) => Promise<void>
+  logout: () => void
+  loading: boolean
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
+
+// Configure axios defaults
+axios.defaults.baseURL = API_URL
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [token, setToken] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const savedToken = Cookies.get('token')
+      if (savedToken) {
+        setToken(savedToken)
+        axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
+        
+        try {
+          const response = await axios.get('/api/v1/auth/me')
+          setUser(response.data)
+        } catch (error) {
+          // Token is invalid, clear it
+          Cookies.remove('token')
+          setToken(null)
+          delete axios.defaults.headers.common['Authorization']
+        }
+      }
+      setLoading(false)
+    }
+
+    initAuth()
+  }, [])
+
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await axios.post('/api/v1/auth/login', {
+        email,
+        password
+      })
+      
+      const { access_token } = response.data
+      setToken(access_token)
+      Cookies.set('token', access_token, { expires: 7 })
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+      
+      // Get user info
+      const userResponse = await axios.get('/api/v1/auth/me')
+      setUser(userResponse.data)
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || '登录失败')
+    }
+  }
+
+  const register = async (email: string, password: string) => {
+    try {
+      await axios.post('/api/v1/auth/register', {
+        email,
+        password
+      })
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || '注册失败')
+    }
+  }
+
+  const adminLogin = async (email: string, password: string) => {
+    try {
+      const response = await axios.post('/api/v1/auth/admin/login', {
+        email,
+        password
+      })
+      
+      const { access_token } = response.data
+      setToken(access_token)
+      Cookies.set('token', access_token, { expires: 7 })
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+      
+      // Get user info
+      const userResponse = await axios.get('/api/v1/auth/me')
+      setUser(userResponse.data)
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || '管理员登录失败')
+    }
+  }
+
+  const logout = () => {
+    setUser(null)
+    setToken(null)
+    Cookies.remove('token')
+    delete axios.defaults.headers.common['Authorization']
+    router.push('/')
+  }
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      token,
+      login,
+      register,
+      adminLogin,
+      logout,
+      loading
+    }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}
