@@ -26,6 +26,7 @@ interface DriverLicense {
   file_url: string
   file_size: number
   content_type: string
+  license_type: 'front' | 'back'
   status: 'pending' | 'approved' | 'rejected'
   created_at: string
   admin_notes?: string
@@ -356,7 +357,9 @@ export default function AdminPage() {
                         <div className="flex items-center">
                           <FileImage className="h-8 w-8 text-gray-400 mr-3" />
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{license.file_name}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {license.license_type === 'front' ? '驾照正面' : '驾照反面'} - {license.file_name}
+                            </div>
                             <div className="text-sm text-gray-500">
                               {(license.file_size / 1024 / 1024).toFixed(2)} MB
                             </div>

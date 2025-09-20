@@ -39,7 +39,9 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         router.push(`/${locale}/register-success`)
       }
     } catch (error: any) {
-      toast.error(error.message || t('common.error'))
+      console.error('Auth error:', error)
+      const errorMessage = error.response?.data?.detail || error.message || t('common.error')
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -108,15 +110,20 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <Label htmlFor="email">{t('auth.email')}</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={t('auth.email')}
-                      required
-                      className="mt-1"
-                    />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      console.log('Email changed:', e.target.value)
+                      setEmail(e.target.value)
+                    }}
+                    placeholder={t('auth.email')}
+                    required
+                    className="mt-1"
+                    autoComplete="email"
+                    inputMode="email"
+                  />
                   </div>
 
                   <div>
@@ -125,17 +132,26 @@ export default function HomePage({ params }: { params: { locale: string } }) {
                       id="password"
                       type="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        console.log('Password changed, length:', e.target.value.length)
+                        setPassword(e.target.value)
+                      }}
                       placeholder={t('auth.password')}
                       required
                       className="mt-1"
+                      autoComplete="current-password"
                     />
                   </div>
 
                   <Button
-                    type="submit"
+                    type="button"
                     className="w-full"
                     disabled={loading}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      // 直接调用handleSubmit，不依赖表单提交
+                      handleSubmit(e as any)
+                    }}
                   >
                     {loading ? t('common.loading') : (isLogin ? t('auth.login') : t('auth.register'))}
                   </Button>

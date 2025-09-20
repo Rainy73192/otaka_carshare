@@ -61,16 +61,41 @@ export function TabsTrigger({ value, children, className, onClick }: TabsTrigger
 
   const isActive = context.value === value
 
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    context.onValueChange(value)
+    onClick?.()
+  }
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.currentTarget.style.transform = 'scale(0.95)'
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.currentTarget.style.transform = 'scale(1)'
+    context.onValueChange(value)
+    onClick?.()
+  }
+
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 -webkit-tap-highlight-color: transparent -webkit-touch-callout: none -webkit-user-select: none touch-action: manipulation',
         isActive && 'bg-white text-gray-900 shadow-sm',
         className
       )}
-      onClick={() => {
-        context.onValueChange(value)
-        onClick?.()
+      onClick={handleClick}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      style={{
+        WebkitTapHighlightColor: 'transparent',
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none',
+        touchAction: 'manipulation',
+        minHeight: '44px',
+        cursor: 'pointer'
       }}
     >
       {children}

@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from fastapi import HTTPException, status
 from app.models.user import User, DriverLicense
-from app.schemas.user import UserCreate, UserLogin, DriverLicenseCreate, DriverLicenseUpdate, EmailVerificationRequest, VerifyEmailRequest
+from app.schemas.user import UserCreate, DriverLicenseCreate, DriverLicenseUpdate
 from app.core.security import verify_password, get_password_hash
 from app.core.config import settings
 from app.core.email import EmailService
@@ -101,12 +101,14 @@ class UserService:
         print(f"License data type: {type(license_data)}")
         print(f"License data: {license_data}")
         
-        # Check if user already has a license
-        existing_license = self.db.query(DriverLicense).filter(DriverLicense.user_id == user_id).first()
+        # Check if user already has a license of this type
+        existing_license = self.db.query(DriverLicense).filter(
+            and_(DriverLicense.user_id == user_id, DriverLicense.license_type == license_data.license_type)
+        ).first()
         if existing_license:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Driver license already exists for this user"
+                detail=f"Driver license {license_data.license_type} already exists for this user"
             )
         
         print(f"Creating DriverLicense object with file_name: {license_data.file_name}")
@@ -115,7 +117,8 @@ class UserService:
             file_name=license_data.file_name,
             file_url=license_data.file_url,
             file_size=license_data.file_size,
-            content_type=license_data.content_type
+            content_type=license_data.content_type,
+            license_type=license_data.license_type
         )
         self.db.add(db_license)
         self.db.commit()
@@ -142,8 +145,8 @@ class UserService:
         
         return db_license
     
-    def get_driver_license_by_user(self, user_id: int) -> Optional[DriverLicense]:
-        return self.db.query(DriverLicense).filter(DriverLicense.user_id == user_id).first()
+    def get_driver_license_by_user(self, user_id: int) -> List[DriverLicense]:
+        return self.db.query(DriverLicense).filter(DriverLicense.user_id == user_id).all()
     
     def get_all_driver_licenses(self) -> List[DriverLicense]:
         return self.db.query(DriverLicense).all()
@@ -243,7 +246,6 @@ class UserService:
                 detail="Driver license not found"
             )
         
-        old_status = license_record.status
         license_record.status = update_data.status
         license_record.admin_notes = update_data.admin_notes
         self.db.commit()
@@ -272,6 +274,3 @@ class UserService:
     
     def get_driver_license_with_user(self, license_id: int):
         return self.db.query(DriverLicense, User).join(User, DriverLicense.user_id == User.id).filter(DriverLicense.id == license_id).first()
-    
-    def get_all_driver_licenses_with_users(self):
-        return self.db.query(DriverLicense, User).join(User, DriverLicense.user_id == User.id).all()

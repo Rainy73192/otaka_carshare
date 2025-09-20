@@ -1,6 +1,21 @@
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
+// 动态获取API URL
+const getApiUrl = () => {
+  if (typeof window !== 'undefined') {
+    // 在浏览器环境中
+    const hostname = window.location.hostname
+    if (hostname.includes('ngrok') || hostname.includes('ngrok-free')) {
+      // 如果是ngrok域名，使用相对路径（通过Next.js代理）
+      return ''
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
+}
+
+const API_URL = getApiUrl()
+console.log('API_URL:', API_URL)
+console.log('Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'server-side')
 
 const api = axios.create({
   baseURL: API_URL,

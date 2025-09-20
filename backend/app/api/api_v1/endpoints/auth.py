@@ -71,97 +71,117 @@ def get_current_user(token_data: dict = Depends(verify_token), db: Session = Dep
 
 @router.post("/upload-license")
 def upload_driver_license(
-    file: UploadFile = File(...),
+    front_image: UploadFile = File(...),
+    back_image: UploadFile = File(...),
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db)
 ):
     print("=== UPLOAD START ===")
-    print(f"File: {file.filename}")
-    print(f"Content type: {file.content_type}")
+    print(f"Front image: {front_image.filename}")
+    print(f"Back image: {back_image.filename}")
     
-    # Check if file is an image
-    if not file.content_type.startswith("image/"):
-        print("ERROR: Not an image file")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must be an image"
-        )
+    # Process both files
+    files_to_process = [
+        (front_image, "front"),
+        (back_image, "back")
+    ]
+    
+    uploaded_licenses = []
+    
+    for file, license_type in files_to_process:
+        print(f"=== PROCESSING {license_type.upper()} IMAGE ===")
+        print(f"File: {file.filename}")
+        print(f"Content type: {file.content_type}")
+        
+        # Check if file is an image
+        if not file.content_type.startswith("image/"):
+            print(f"ERROR: {license_type} file is not an image")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{license_type} file must be an image"
+            )
 
-    # Check file size (max 5MB)
-    file_content = file.file.read()
-    print(f"File size: {len(file_content)} bytes")
-    if len(file_content) > 5 * 1024 * 1024:
-        print("ERROR: File too large")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File size too large (max 5MB)"
-        )
+        # Check file size (max 5MB)
+        file_content = file.file.read()
+        print(f"File size: {len(file_content)} bytes")
+        if len(file_content) > 5 * 1024 * 1024:
+            print(f"ERROR: {license_type} file too large")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{license_type} file size too large (max 5MB)"
+            )
 
-    # Generate unique filename
-    if not file.filename:
-        file.filename = "uploaded_file"
+        # Generate unique filename
+        if not file.filename:
+            file.filename = f"uploaded_{license_type}_file"
+        
+        file_extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+        unique_filename = f"{license_type}-{uuid.uuid4()}.{file_extension}"
+        print(f"Generated filename: {unique_filename}")
+        
+        try:
+            print(f"=== MINIO UPLOAD {license_type.upper()} ===")
+            # Upload to MinIO
+            file_url = minio_client.upload_file(
+                file_content,
+                unique_filename,
+                file.content_type
+            )
+            print(f"MinIO upload successful: {file_url}")
+            
+            print(f"=== DATABASE SAVE {license_type.upper()} ===")
+            # Save to database
+            user_service = UserService(db)
+            user = user_service.get_user_by_email(token_data["sub"])
+            print(f"User found: {user.id}")
+            
+            from app.schemas.user import DriverLicenseCreate
+            print("Creating DriverLicenseCreate with:")
+            print(f"  file_name: {unique_filename}")
+            print(f"  file_url: {file_url}")
+            print(f"  file_size: {len(file_content)}")
+            print(f"  content_type: {file.content_type}")
+            print(f"  license_type: {license_type}")
+            
+            license_data = DriverLicenseCreate(
+                file_name=unique_filename,
+                file_url=file_url,
+                file_size=len(file_content),
+                content_type=file.content_type,
+                license_type=license_type
+            )
+            print(f"DriverLicenseCreate created successfully: {license_data}")
+            
+            driver_license = user_service.create_driver_license(user.id, license_data)
+            print(f"Driver license saved: {driver_license.id}")
+            
+            uploaded_licenses.append({
+                "license_id": driver_license.id,
+                "license_type": license_type,
+                "file_url": file_url
+            })
+            
+        except HTTPException as e:
+            # Re-raise HTTPException as-is
+            raise e
+        except Exception as e:
+            print(f"=== EXCEPTION CAUGHT FOR {license_type.upper()} ===")
+            print(f"Exception type: {type(e)}")
+            print(f"Exception value: {repr(e)}")
+            print(f"Exception str: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            
+            error_msg = str(e) if str(e) else f"Unknown error: {type(e)}"
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error uploading {license_type} file: {error_msg}"
+            )
     
-    file_extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
-    unique_filename = f"{uuid.uuid4()}.{file_extension}"
-    print(f"Generated filename: {unique_filename}")
-    
-    try:
-        print("=== MINIO UPLOAD ===")
-        # Upload to MinIO
-        file_url = minio_client.upload_file(
-            file_content,
-            unique_filename,
-            file.content_type
-        )
-        print(f"MinIO upload successful: {file_url}")
-        
-        print("=== DATABASE SAVE ===")
-        # Save to database
-        user_service = UserService(db)
-        user = user_service.get_user_by_email(token_data["sub"])
-        print(f"User found: {user.id}")
-        
-        from app.schemas.user import DriverLicenseCreate
-        print(f"Creating DriverLicenseCreate with:")
-        print(f"  file_name: {unique_filename}")
-        print(f"  file_url: {file_url}")
-        print(f"  file_size: {len(file_content)}")
-        print(f"  content_type: {file.content_type}")
-        
-        license_data = DriverLicenseCreate(
-            file_name=unique_filename,
-            file_url=file_url,
-            file_size=len(file_content),
-            content_type=file.content_type
-        )
-        print(f"DriverLicenseCreate created successfully: {license_data}")
-        print(f"DriverLicenseCreate.file_name: {license_data.file_name}")
-        
-        driver_license = user_service.create_driver_license(user.id, license_data)
-        print(f"Driver license saved: {driver_license.id}")
-        
-        return {
-            "message": "Driver license uploaded successfully",
-            "license_id": driver_license.id,
-            "file_url": file_url
-        }
-        
-    except HTTPException as e:
-        # Re-raise HTTPException as-is
-        raise e
-    except Exception as e:
-        print(f"=== EXCEPTION CAUGHT ===")
-        print(f"Exception type: {type(e)}")
-        print(f"Exception value: {repr(e)}")
-        print(f"Exception str: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        
-        error_msg = str(e) if str(e) else f"Unknown error: {type(e)}"
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error uploading file: {error_msg}"
-        )
+    return {
+        "message": "Driver license uploaded successfully",
+        "licenses": uploaded_licenses
+    }
 
 @router.get("/files/{bucket_name}/{file_name}")
 def get_file(bucket_name: str, file_name: str, db: Session = Depends(get_db)):

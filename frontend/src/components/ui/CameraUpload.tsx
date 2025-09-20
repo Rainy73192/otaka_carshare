@@ -10,9 +10,10 @@ interface CameraUploadProps {
   onFileSelect: (file: File) => void
   onClose: () => void
   isOpen: boolean
+  uploadMode?: 'front' | 'back'
 }
 
-export function CameraUpload({ onFileSelect, onClose, isOpen }: CameraUploadProps) {
+export function CameraUpload({ onFileSelect, onClose, isOpen, uploadMode }: CameraUploadProps) {
   const [mode, setMode] = useState<'select' | 'camera' | 'preview'>('select')
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -130,7 +131,9 @@ export function CameraUpload({ onFileSelect, onClose, isOpen }: CameraUploadProp
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">上传驾照照片</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              上传驾照{uploadMode === 'front' ? '正面' : uploadMode === 'back' ? '反面' : ''}照片
+            </h3>
             <Button
               variant="ghost"
               size="sm"
@@ -145,7 +148,7 @@ export function CameraUpload({ onFileSelect, onClose, isOpen }: CameraUploadProp
           {mode === 'select' && (
             <div className="space-y-4">
               <div className="text-center text-gray-600 mb-6">
-                选择上传方式
+                请选择上传方式
               </div>
               
               <div className="grid grid-cols-2 gap-4">

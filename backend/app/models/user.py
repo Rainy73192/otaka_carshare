@@ -25,6 +25,7 @@ class DriverLicense(Base):
     file_url = Column(String, nullable=False)
     file_size = Column(Integer, nullable=False)
     content_type = Column(String, nullable=False)
+    license_type = Column(String, nullable=False)  # front, back
     status = Column(String, default="pending")  # pending, approved, rejected
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

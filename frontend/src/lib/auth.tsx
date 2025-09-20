@@ -64,21 +64,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post('/api/v1/auth/login', {
-        email,
-        password
+      console.log('Login attempt with fetch:', { email, passwordLength: password.length })
+      
+      // 使用fetch替代axios
+      const response = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
       })
       
-      const { access_token } = response.data
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || `HTTP ${response.status}`)
+      }
+      
+      const data = await response.json()
+      console.log('Login response:', data)
+      const { access_token } = data
       setToken(access_token)
       Cookies.set('token', access_token, { expires: 7 })
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
       
-      // Get user info
-      const userResponse = await axios.get('/api/v1/auth/me')
-      setUser(userResponse.data)
+      // Get user info using fetch
+      const userResponse = await fetch('/api/v1/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${access_token}`
+        }
+      })
+      
+      if (!userResponse.ok) {
+        throw new Error('Failed to get user info')
+      }
+      
+      const userData = await userResponse.json()
+      setUser(userData)
     } catch (error: any) {
-      throw new Error(error.response?.data?.detail || '登录失败')
+      console.error('Login error:', error)
+      throw new Error(error.message || '登录失败')
     }
   }
 
