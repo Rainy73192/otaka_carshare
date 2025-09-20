@@ -30,7 +30,7 @@
 
 2. 克隆项目到本地
 ```bash
-git clone <repository-url>
+git clone <https://github.com/Rainy73192/otaka_carshare.git>
 cd otaka_carshare
 ```
 

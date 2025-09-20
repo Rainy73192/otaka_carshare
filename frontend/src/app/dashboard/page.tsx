@@ -7,9 +7,10 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
-import { Upload, FileImage, CheckCircle, Clock, XCircle, LogOut, User } from 'lucide-react'
+import { Upload, FileImage, CheckCircle, Clock, XCircle, LogOut, User, Camera } from 'lucide-react'
 import toast from 'react-hot-toast'
 import axios from 'axios'
+import { CameraUpload } from '@/components/ui/CameraUpload'
 
 interface DriverLicense {
   id: number
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [showCameraUpload, setShowCameraUpload] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -51,8 +53,7 @@ export default function DashboardPage() {
     }
   }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileSelect = (file: File) => {
     if (file) {
       if (!file.type.startsWith('image/')) {
         toast.error('请选择图片文件')
@@ -177,16 +178,28 @@ export default function DashboardPage() {
             
             {!license ? (
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="license-upload">选择驾照照片</Label>
-                  <Input
-                    id="license-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="mt-1"
-                  />
-                  <p className="mt-1 text-sm text-gray-500">
+                <div className="text-center">
+                  <p className="text-gray-600 mb-4">请上传您的驾照照片</p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto">
+                    <Button
+                      onClick={() => setShowCameraUpload(true)}
+                      className="flex flex-col items-center p-6 h-auto bg-green-500 hover:bg-green-600"
+                    >
+                      <Camera className="h-8 w-8 mb-2" />
+                      <span>拍照上传</span>
+                    </Button>
+                    
+                    <Button
+                      onClick={() => setShowCameraUpload(true)}
+                      className="flex flex-col items-center p-6 h-auto bg-blue-500 hover:bg-blue-600"
+                    >
+                      <FileImage className="h-8 w-8 mb-2" />
+                      <span>相册选择</span>
+                    </Button>
+                  </div>
+                  
+                  <p className="mt-4 text-sm text-gray-500">
                     支持 JPG、PNG 格式，文件大小不超过 5MB
                   </p>
                 </div>
@@ -258,6 +271,13 @@ export default function DashboardPage() {
           </Card>
         </div>
       </main>
+      
+      {/* Camera Upload Modal */}
+      <CameraUpload
+        isOpen={showCameraUpload}
+        onFileSelect={handleFileSelect}
+        onClose={() => setShowCameraUpload(false)}
+      />
     </div>
   )
 }
