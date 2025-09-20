@@ -36,7 +36,7 @@ interface LicenseWithUser extends DriverLicense {
 }
 
 export default function AdminPage() {
-  const { user, adminLogin, logout } = useAuth()
+  const { user, adminLogin, logout, loading: authLoading } = useAuth()
   const router = useRouter()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
@@ -53,6 +53,12 @@ export default function AdminPage() {
       fetchLicenses()
     }
   }, [user])
+
+  useEffect(() => {
+    if (!authLoading && user && !user.is_admin) {
+      router.push('/')
+    }
+  }, [authLoading, user, router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -131,6 +137,17 @@ export default function AdminPage() {
       default:
         return 'text-yellow-600 bg-yellow-50'
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">加载中...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!user || !user.is_admin) {

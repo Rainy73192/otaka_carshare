@@ -48,9 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const response = await axios.get('/api/v1/auth/me')
           setUser(response.data)
         } catch (error) {
+          console.error('Token validation failed:', error)
           // Token is invalid, clear it
           Cookies.remove('token')
           setToken(null)
+          setUser(null)
           delete axios.defaults.headers.common['Authorization']
         }
       }

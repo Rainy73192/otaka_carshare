@@ -24,7 +24,7 @@ interface DriverLicense {
 }
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth()
+  const { user, logout, loading: authLoading } = useAuth()
   const router = useRouter()
   const [license, setLicense] = useState<DriverLicense | null>(null)
   const [loading, setLoading] = useState(true)
@@ -33,12 +33,16 @@ export default function DashboardPage() {
   const [showCameraUpload, setShowCameraUpload] = useState(false)
 
   useEffect(() => {
-    if (!user) {
-      router.push('/')
-      return
+    if (user) {
+      fetchLicense()
     }
-    fetchLicense()
-  }, [user, router])
+  }, [user])
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/')
+    }
+  }, [authLoading, user, router])
 
   const fetchLicense = async () => {
     try {
@@ -124,7 +128,7 @@ export default function DashboardPage() {
     }
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
