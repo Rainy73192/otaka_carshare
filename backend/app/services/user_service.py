@@ -62,6 +62,10 @@ class UserService:
         return self.db.query(User).all()
     
     def create_driver_license(self, user_id: int, license_data: DriverLicenseCreate) -> DriverLicense:
+        print(f"Creating driver license for user_id: {user_id}")
+        print(f"License data type: {type(license_data)}")
+        print(f"License data: {license_data}")
+        
         # Check if user already has a license
         existing_license = self.db.query(DriverLicense).filter(DriverLicense.user_id == user_id).first()
         if existing_license:
@@ -70,6 +74,7 @@ class UserService:
                 detail="Driver license already exists for this user"
             )
         
+        print(f"Creating DriverLicense object with file_name: {license_data.file_name}")
         db_license = DriverLicense(
             user_id=user_id,
             file_name=license_data.file_name,
@@ -83,16 +88,22 @@ class UserService:
         
         # Send notification to admin
         try:
+            user = self.get_user_by_id(user_id)
+            print(f"User found: {user}")
+            if user:
+                print(f"User email: {user.email}")
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.run_until_complete(EmailService.send_license_uploaded_notification(
                 settings.ADMIN_EMAIL, 
-                self.get_user_by_id(user_id).email, 
+                user.email if user else "unknown@example.com", 
                 user_id
             ))
             loop.close()
         except Exception as e:
             print(f"Failed to send license notification: {e}")
+            import traceback
+            traceback.print_exc()
         
         return db_license
     
@@ -101,6 +112,9 @@ class UserService:
     
     def get_all_driver_licenses(self) -> List[DriverLicense]:
         return self.db.query(DriverLicense).all()
+    
+    def get_all_driver_licenses_with_users(self) -> List[tuple]:
+        return self.db.query(DriverLicense, User).join(User, DriverLicense.user_id == User.id).all()
     
     def update_driver_license_status(self, license_id: int, update_data: DriverLicenseUpdate) -> DriverLicense:
         license_record = self.db.query(DriverLicense).filter(DriverLicense.id == license_id).first()

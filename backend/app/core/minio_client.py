@@ -33,7 +33,8 @@ class MinIOClient:
                 length=len(file_data),
                 content_type=content_type
             )
-            return f"/{self.bucket_name}/{file_name}"
+            # Return a path that can be used with the API proxy endpoint
+            return f"/api/v1/auth/files/{self.bucket_name}/{file_name}"
         except S3Error as e:
             print(f"Error uploading file: {e}")
             raise e

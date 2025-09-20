@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import verify_token
 from app.schemas.user import UserResponse, DriverLicenseResponse
 from app.services.user_service import UserService
+from app.core.minio_client import minio_client
+import io
 
 router = APIRouter()
 
@@ -26,3 +29,4 @@ def get_my_driver_license(token_data: dict = Depends(verify_token), db: Session 
         )
     
     return license_record
+

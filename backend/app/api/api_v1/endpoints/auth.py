@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from app.core.database import get_db
@@ -8,6 +9,7 @@ from app.schemas.user import UserCreate, UserLogin, Token, UserResponse
 from app.services.user_service import UserService
 from app.core.minio_client import minio_client
 import uuid
+import io
 
 router = APIRouter()
 
@@ -66,45 +68,70 @@ def upload_driver_license(
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db)
 ):
+    print("=== UPLOAD START ===")
+    print(f"File: {file.filename}")
+    print(f"Content type: {file.content_type}")
+    
     # Check if file is an image
     if not file.content_type.startswith("image/"):
+        print("ERROR: Not an image file")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File must be an image"
         )
-    
+
     # Check file size (max 5MB)
     file_content = file.file.read()
+    print(f"File size: {len(file_content)} bytes")
     if len(file_content) > 5 * 1024 * 1024:
+        print("ERROR: File too large")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File size too large (max 5MB)"
         )
-    
+
     # Generate unique filename
+    if not file.filename:
+        file.filename = "uploaded_file"
+    
     file_extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    print(f"Generated filename: {unique_filename}")
     
     try:
+        print("=== MINIO UPLOAD ===")
         # Upload to MinIO
         file_url = minio_client.upload_file(
             file_content,
             unique_filename,
             file.content_type
         )
+        print(f"MinIO upload successful: {file_url}")
         
+        print("=== DATABASE SAVE ===")
         # Save to database
         user_service = UserService(db)
         user = user_service.get_user_by_email(token_data["sub"])
+        print(f"User found: {user.id}")
         
-        license_data = {
-            "file_name": unique_filename,
-            "file_url": file_url,
-            "file_size": len(file_content),
-            "content_type": file.content_type
-        }
+        from app.schemas.user import DriverLicenseCreate
+        print(f"Creating DriverLicenseCreate with:")
+        print(f"  file_name: {unique_filename}")
+        print(f"  file_url: {file_url}")
+        print(f"  file_size: {len(file_content)}")
+        print(f"  content_type: {file.content_type}")
+        
+        license_data = DriverLicenseCreate(
+            file_name=unique_filename,
+            file_url=file_url,
+            file_size=len(file_content),
+            content_type=file.content_type
+        )
+        print(f"DriverLicenseCreate created successfully: {license_data}")
+        print(f"DriverLicenseCreate.file_name: {license_data.file_name}")
         
         driver_license = user_service.create_driver_license(user.id, license_data)
+        print(f"Driver license saved: {driver_license.id}")
         
         return {
             "message": "Driver license uploaded successfully",
@@ -112,8 +139,54 @@ def upload_driver_license(
             "file_url": file_url
         }
         
+    except HTTPException as e:
+        # Re-raise HTTPException as-is
+        raise e
     except Exception as e:
+        print(f"=== EXCEPTION CAUGHT ===")
+        print(f"Exception type: {type(e)}")
+        print(f"Exception value: {repr(e)}")
+        print(f"Exception str: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        error_msg = str(e) if str(e) else f"Unknown error: {type(e)}"
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error uploading file: {str(e)}"
+            detail=f"Error uploading file: {error_msg}"
+        )
+
+@router.get("/files/{bucket_name}/{file_name}")
+def get_file(bucket_name: str, file_name: str, db: Session = Depends(get_db)):
+    """Proxy endpoint to serve files from MinIO"""
+    try:
+        # Get file from MinIO
+        response = minio_client.client.get_object(bucket_name, file_name)
+        file_data = response.read()
+        
+        # Determine content type
+        content_type = "application/octet-stream"
+        if file_name.lower().endswith(('.jpg', '.jpeg')):
+            content_type = "image/jpeg"
+        elif file_name.lower().endswith('.png'):
+            content_type = "image/png"
+        elif file_name.lower().endswith('.gif'):
+            content_type = "image/gif"
+        elif file_name.lower().endswith('.webp'):
+            content_type = "image/webp"
+        
+        # Return file as streaming response
+        return StreamingResponse(
+            io.BytesIO(file_data),
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f"inline; filename={file_name}",
+                "Cache-Control": "public, max-age=3600"
+            }
+        )
+    except Exception as e:
+        print(f"Error serving file {bucket_name}/{file_name}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found"
         )

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
 from app.core.security import verify_token
-from app.schemas.user import UserResponse, DriverLicenseResponse, DriverLicenseUpdate
+from app.schemas.user import UserResponse, DriverLicenseResponse, DriverLicenseUpdate, DriverLicenseWithUserResponse
 from app.services.user_service import UserService
 
 router = APIRouter()
@@ -24,13 +24,38 @@ def get_all_users(
     user_service = UserService(db)
     return user_service.get_all_users()
 
-@router.get("/driver-licenses", response_model=List[DriverLicenseResponse])
+@router.get("/driver-licenses", response_model=List[DriverLicenseWithUserResponse])
 def get_all_driver_licenses(
     token_data: dict = Depends(verify_admin),
     db: Session = Depends(get_db)
 ):
     user_service = UserService(db)
-    return user_service.get_all_driver_licenses()
+    results = user_service.get_all_driver_licenses_with_users()
+    
+    # Convert tuple results to the expected format
+    licenses_with_users = []
+    for license_record, user in results:
+        license_with_user = {
+            "id": license_record.id,
+            "user_id": license_record.user_id,
+            "file_name": license_record.file_name,
+            "file_url": license_record.file_url,
+            "file_size": license_record.file_size,
+            "content_type": license_record.content_type,
+            "status": license_record.status,
+            "created_at": license_record.created_at,
+            "admin_notes": license_record.admin_notes,
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "is_active": user.is_active,
+                "is_admin": user.is_admin,
+                "created_at": user.created_at
+            }
+        }
+        licenses_with_users.append(license_with_user)
+    
+    return licenses_with_users
 
 @router.put("/driver-licenses/{license_id}")
 def update_driver_license_status(

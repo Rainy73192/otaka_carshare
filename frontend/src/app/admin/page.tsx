@@ -100,8 +100,8 @@ export default function AdminPage() {
   }
 
   const filteredLicenses = licenses.filter(license => {
-    const matchesSearch = license.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         license.file_name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = (license.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+                         (license.file_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
     const matchesStatus = statusFilter === 'all' || license.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -348,8 +348,8 @@ export default function AdminPage() {
                     <tr key={license.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{license.user.email}</div>
-                          <div className="text-sm text-gray-500">ID: {license.user.id}</div>
+                          <div className="text-sm font-medium text-gray-900">{license.user?.email || '未知邮箱'}</div>
+                          <div className="text-sm text-gray-500">ID: {license.user?.id || '未知ID'}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -412,7 +412,7 @@ export default function AdminPage() {
               <div className="space-y-4">
                 <div>
                   <Label>用户邮箱</Label>
-                  <p className="text-gray-900">{selectedLicense.user.email}</p>
+                  <p className="text-gray-900">{selectedLicense.user?.email || '未知邮箱'}</p>
                 </div>
                 
                 <div>

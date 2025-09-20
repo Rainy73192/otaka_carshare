@@ -54,3 +54,6 @@ class DriverLicenseResponse(DriverLicenseBase):
 class DriverLicenseUpdate(BaseModel):
     status: str
     admin_notes: Optional[str] = None
+
+class DriverLicenseWithUserResponse(DriverLicenseResponse):
+    user: UserResponse
