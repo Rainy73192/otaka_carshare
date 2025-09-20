@@ -5,8 +5,10 @@ from app.models.user import User, DriverLicense
 from app.schemas.user import UserCreate, UserLogin, DriverLicenseCreate, DriverLicenseUpdate
 from app.core.security import verify_password, get_password_hash, verify_token
 from app.core.config import settings
+from app.core.email import EmailService
 from typing import List, Optional
 import uuid
+import asyncio
 
 class UserService:
     def __init__(self, db: Session):
@@ -30,6 +32,16 @@ class UserService:
         self.db.add(db_user)
         self.db.commit()
         self.db.refresh(db_user)
+        
+        # Send welcome email asynchronously
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(EmailService.send_welcome_email(db_user.email))
+            loop.close()
+        except Exception as e:
+            print(f"Failed to send welcome email: {e}")
+        
         return db_user
     
     def authenticate_user(self, email: str, password: str) -> Optional[User]:
@@ -68,6 +80,20 @@ class UserService:
         self.db.add(db_license)
         self.db.commit()
         self.db.refresh(db_license)
+        
+        # Send notification to admin
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(EmailService.send_license_uploaded_notification(
+                settings.ADMIN_EMAIL, 
+                self.get_user_by_id(user_id).email, 
+                user_id
+            ))
+            loop.close()
+        except Exception as e:
+            print(f"Failed to send license notification: {e}")
+        
         return db_license
     
     def get_driver_license_by_user(self, user_id: int) -> Optional[DriverLicense]:
@@ -84,10 +110,31 @@ class UserService:
                 detail="Driver license not found"
             )
         
+        old_status = license_record.status
         license_record.status = update_data.status
         license_record.admin_notes = update_data.admin_notes
         self.db.commit()
         self.db.refresh(license_record)
+        
+        # Send email notification based on status change
+        try:
+            user = self.get_user_by_id(license_record.user_id)
+            if user:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+                if update_data.status == "approved":
+                    loop.run_until_complete(EmailService.send_license_approved_email(user.email))
+                elif update_data.status == "rejected":
+                    loop.run_until_complete(EmailService.send_license_rejected_email(
+                        user.email, 
+                        update_data.admin_notes
+                    ))
+                
+                loop.close()
+        except Exception as e:
+            print(f"Failed to send status email: {e}")
+        
         return license_record
     
     def get_driver_license_with_user(self, license_id: int):

@@ -20,6 +20,18 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: str = "admin@otaka.com"
     ADMIN_PASSWORD: str = "admin123"
     
+    # Email settings
+    MAIL_USERNAME: str = "your-email@gmail.com"
+    MAIL_PASSWORD: str = "your-app-password"
+    MAIL_FROM: str = "your-email@gmail.com"
+    MAIL_FROM_NAME: str = "Otaka 租车系统"
+    MAIL_PORT: int = 587
+    MAIL_SERVER: str = "smtp.gmail.com"
+    MAIL_STARTTLS: bool = True
+    MAIL_SSL_TLS: bool = False
+    MAIL_USE_CREDENTIALS: bool = True
+    MAIL_VALIDATE_CERTS: bool = True
+    
     class Config:
         env_file = ".env"
 

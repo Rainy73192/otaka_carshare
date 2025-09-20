@@ -34,7 +34,12 @@ git clone <repository-url>
 cd otaka_carshare
 ```
 
-3. 启动所有服务
+3. 配置邮件服务（可选）
+   - 查看 `EMAIL_SETUP.md` 了解详细配置步骤
+   - 修改 `docker-compose.yml` 中的邮件配置
+   - 如不配置邮件，系统仍可正常运行，但不会发送邮件通知
+
+4. 启动所有服务
 ```bash
 # Windows 用户
 start.bat
@@ -46,7 +51,7 @@ start.bat
 docker-compose up --build -d
 ```
 
-4. 访问应用
+5. 访问应用
 - 前端应用: http://localhost:3001
 - 后端 API: http://localhost:8001
 - API 文档: http://localhost:8001/docs
@@ -86,6 +91,7 @@ docker-compose up --build -d
 - **安全认证**: JWT Token 认证机制
 - **文件存储**: MinIO 对象存储驾照照片
 - **数据持久化**: PostgreSQL 数据库存储用户和业务数据
+- **邮件通知**: 自动发送注册确认、审核通知等邮件
 - **现代化 UI**: 白色和灰色主题，绿色按钮，立体质感设计
 
 ## 项目结构
