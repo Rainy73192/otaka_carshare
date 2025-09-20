@@ -16,6 +16,7 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     is_admin: bool
+    is_verified: bool
     created_at: datetime
     
     class Config:
@@ -57,3 +58,13 @@ class DriverLicenseUpdate(BaseModel):
 
 class DriverLicenseWithUserResponse(DriverLicenseResponse):
     user: UserResponse
+
+class EmailVerificationRequest(BaseModel):
+    email: EmailStr
+
+class EmailVerificationResponse(BaseModel):
+    message: str
+    email: EmailStr
+
+class VerifyEmailRequest(BaseModel):
+    token: str

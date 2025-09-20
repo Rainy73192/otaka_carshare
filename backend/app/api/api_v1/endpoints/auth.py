@@ -5,7 +5,7 @@ from datetime import timedelta
 from app.core.database import get_db
 from app.core.security import create_access_token, verify_token
 from app.core.config import settings
-from app.schemas.user import UserCreate, UserLogin, Token, UserResponse
+from app.schemas.user import UserCreate, UserLogin, Token, UserResponse, EmailVerificationRequest, EmailVerificationResponse, VerifyEmailRequest
 from app.services.user_service import UserService
 from app.core.minio_client import minio_client
 import uuid
@@ -13,11 +13,18 @@ import io
 
 router = APIRouter()
 
-@router.post("/register", response_model=UserResponse)
+@router.post("/register")
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     user_service = UserService(db)
-    user = user_service.create_user(user_data)
-    return user
+    try:
+        user = user_service.create_user(user_data)
+        return user
+    except HTTPException as e:
+        # 如果是200状态码，说明是重新发送验证邮件
+        if e.status_code == 200:
+            return {"message": e.detail, "email": user_data.email}
+        # 其他错误直接抛出
+        raise e
 
 @router.post("/login", response_model=Token)
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
@@ -189,4 +196,38 @@ def get_file(bucket_name: str, file_name: str, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="File not found"
+        )
+
+@router.post("/verify-email", response_model=EmailVerificationResponse)
+def verify_email(verify_data: VerifyEmailRequest, db: Session = Depends(get_db)):
+    """验证邮箱地址"""
+    user_service = UserService(db)
+    success = user_service.verify_email(verify_data.token)
+    
+    if success:
+        return EmailVerificationResponse(
+            message="邮箱验证成功！您现在可以登录了。",
+            email="verified@example.com"  # 临时邮箱，因为验证成功后不需要返回真实邮箱
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="验证链接无效或已过期"
+        )
+
+@router.post("/resend-verification", response_model=EmailVerificationResponse)
+def resend_verification_email(request: EmailVerificationRequest, db: Session = Depends(get_db)):
+    """重新发送验证邮件"""
+    user_service = UserService(db)
+    success = user_service.resend_verification_email(request.email)
+    
+    if success:
+        return EmailVerificationResponse(
+            message="验证邮件已重新发送，请检查您的邮箱。",
+            email=request.email
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="邮箱不存在或已验证"
         )

@@ -30,8 +30,9 @@ export default function HomePage() {
         router.push('/dashboard')
       } else {
         await register(email, password)
-        toast.success('注册成功！请登录')
-        setIsLogin(true)
+        // 注册成功后跳转到验证页面
+        toast.success('注册成功！请检查您的邮箱')
+        router.push('/register-success')
       }
     } catch (error: any) {
       toast.error(error.message || '操作失败')

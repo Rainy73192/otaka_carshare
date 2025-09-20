@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
 from app.core.security import verify_token
-from app.schemas.user import UserResponse, DriverLicenseResponse, DriverLicenseUpdate, DriverLicenseWithUserResponse
+from app.schemas.user import UserResponse, DriverLicenseResponse, DriverLicenseUpdate, DriverLicenseWithUserResponse, EmailVerificationRequest
 from app.services.user_service import UserService
 
 router = APIRouter()
@@ -55,7 +55,43 @@ def get_all_driver_licenses(
         }
         licenses_with_users.append(license_with_user)
     
-    return licenses_with_users
+        return licenses_with_users
+
+@router.delete("/users/{user_id}")
+def delete_user(
+    user_id: int,
+    token_data: dict = Depends(verify_admin),
+    db: Session = Depends(get_db)
+):
+    """删除用户"""
+    user_service = UserService(db)
+    success = user_service.delete_user(user_id)
+    
+    if success:
+        return {"message": "用户删除成功"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="用户不存在"
+        )
+
+@router.delete("/users/by-email")
+def delete_user_by_email(
+    request: EmailVerificationRequest,
+    token_data: dict = Depends(verify_admin),
+    db: Session = Depends(get_db)
+):
+    """通过邮箱删除用户"""
+    user_service = UserService(db)
+    success = user_service.delete_user_by_email(request.email)
+    
+    if success:
+        return {"message": f"用户 {request.email} 删除成功"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="用户不存在"
+        )
 
 @router.put("/driver-licenses/{license_id}")
 def update_driver_license_status(

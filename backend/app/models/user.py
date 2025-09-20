@@ -10,6 +10,9 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
+    is_verified = Column(Boolean, default=False)  # 邮箱是否已验证
+    verification_token = Column(String, nullable=True)  # 邮箱验证令牌
+    verification_token_expires = Column(DateTime(timezone=True), nullable=True)  # 验证令牌过期时间
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

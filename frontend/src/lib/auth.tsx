@@ -82,13 +82,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const register = async (email: string, password: string) => {
+  const register = async (email: string, password: string): Promise<any> => {
     try {
-      await axios.post('/api/v1/auth/register', {
+      const response = await axios.post('/api/v1/auth/register', {
         email,
         password
       })
+      // 注册成功，返回响应数据
+      return response.data
     } catch (error: any) {
+      // 检查是否是验证邮件发送的情况
+      if (error.response?.status === 200) {
+        return error.response.data
+      }
       throw new Error(error.response?.data?.detail || '注册失败')
     }
   }
