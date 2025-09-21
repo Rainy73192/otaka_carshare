@@ -7,6 +7,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    language: Optional[str] = "zh-CN"  # 默认中文
 
 class UserLogin(BaseModel):
     email: EmailStr

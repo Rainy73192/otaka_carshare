@@ -17,7 +17,7 @@ interface AuthContextType {
   user: User | null
   token: string | null
   login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string) => Promise<void>
+  register: (email: string, password: string, language?: string) => Promise<void>
   adminLogin: (email: string, password: string) => Promise<void>
   logout: () => void
   loading: boolean
@@ -107,14 +107,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const register = async (email: string, password: string): Promise<any> => {
+  const register = async (email: string, password: string, language: string = 'zh-CN'): Promise<any> => {
     try {
       const response = await fetch('/api/v1/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, language })
       })
       
       const data = await response.json()

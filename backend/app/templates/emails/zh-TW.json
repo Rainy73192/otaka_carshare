@@ -1,0 +1,66 @@
+{
+  "welcome": {
+    "subject": "歡迎註冊 Otaka 租車系統",
+    "title": "歡迎加入 Otaka 租車！",
+    "greeting": "親愛的用戶，",
+    "message": "感謝您註冊 Otaka 租車系統！您的帳戶已成功建立。",
+    "nextSteps": "下一步操作：",
+    "steps": [
+      "登入您的帳戶",
+      "上傳您的駕照照片",
+      "等待管理員審核",
+      "開始享受租車服務"
+    ],
+    "loginButton": "立即登入",
+    "footer": "如有任何問題，請聯繫我們的客服團隊。"
+  },
+  "verification": {
+    "subject": "請驗證您的電子郵件 - Otaka 租車系統",
+    "title": "電子郵件驗證",
+    "greeting": "歡迎註冊 Otaka 租車系統！",
+    "message": "感謝您註冊我們的服務！為了完成註冊流程，請點擊下面的按鈕驗證您的電子郵件地址：",
+    "verifyButton": "驗證電子郵件地址",
+    "fallbackText": "如果按鈕無法點擊，請複製以下連結到瀏覽器中開啟：",
+    "warning": "注意：此驗證連結將在24小時後過期。如果您沒有註冊此帳戶，請忽略此郵件。",
+    "footer": "此郵件由系統自動發送，請勿回覆。"
+  },
+  "licenseApproved": {
+    "subject": "駕照審核通過 - Otaka 租車系統",
+    "title": "恭喜！您的駕照已通過審核",
+    "greeting": "親愛的用戶，",
+    "message": "我們很高興地通知您，您的駕照已通過審核！現在您可以開始使用我們的租車服務了。",
+    "nextSteps": "接下來您可以：",
+    "steps": [
+      "登入您的帳戶",
+      "瀏覽可用的車輛",
+      "預約租車服務",
+      "享受便捷的租車體驗"
+    ],
+    "loginButton": "立即登入",
+    "footer": "感謝您選擇 Otaka 租車系統！"
+  },
+  "licenseRejected": {
+    "subject": "駕照審核結果 - Otaka 租車系統",
+    "title": "駕照審核未通過",
+    "greeting": "親愛的用戶，",
+    "message": "很抱歉，您的駕照審核未通過。請查看以下原因並重新上傳：",
+    "reason": "審核原因：",
+    "nextSteps": "請按以下步驟操作：",
+    "steps": [
+      "查看審核原因",
+      "重新拍攝清晰的駕照照片",
+      "確保照片完整且清晰可見",
+      "重新上傳駕照照片"
+    ],
+    "uploadButton": "重新上傳",
+    "footer": "如有疑問，請聯繫我們的客服團隊。"
+  },
+  "adminNotification": {
+    "subject": "新駕照上傳通知 - Otaka 租車系統",
+    "title": "有新的駕照需要審核",
+    "message": "用戶上傳了新的駕照照片，請及時審核。",
+    "userInfo": "用戶資訊：",
+    "uploadTime": "上傳時間：",
+    "reviewButton": "立即審核"
+  }
+}

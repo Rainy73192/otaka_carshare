@@ -1,0 +1,66 @@
+{
+  "welcome": {
+    "subject": "欢迎注册 Otaka 租车系统",
+    "title": "欢迎加入 Otaka 租车！",
+    "greeting": "亲爱的用户，",
+    "message": "感谢您注册 Otaka 租车系统！您的账户已成功创建。",
+    "nextSteps": "下一步操作：",
+    "steps": [
+      "登录您的账户",
+      "上传您的驾照照片",
+      "等待管理员审核",
+      "开始享受租车服务"
+    ],
+    "loginButton": "立即登录",
+    "footer": "如有任何问题，请联系我们的客服团队。"
+  },
+  "verification": {
+    "subject": "请验证您的邮箱 - Otaka 租车系统",
+    "title": "邮箱验证",
+    "greeting": "欢迎注册 Otaka 租车系统！",
+    "message": "感谢您注册我们的服务！为了完成注册流程，请点击下面的按钮验证您的邮箱地址：",
+    "verifyButton": "验证邮箱地址",
+    "fallbackText": "如果按钮无法点击，请复制以下链接到浏览器中打开：",
+    "warning": "注意：此验证链接将在24小时后过期。如果您没有注册此账户，请忽略此邮件。",
+    "footer": "此邮件由系统自动发送，请勿回复。"
+  },
+  "licenseApproved": {
+    "subject": "驾照审核通过 - Otaka 租车系统",
+    "title": "恭喜！您的驾照已通过审核",
+    "greeting": "亲爱的用户，",
+    "message": "我们很高兴地通知您，您的驾照已通过审核！现在您可以开始使用我们的租车服务了。",
+    "nextSteps": "接下来您可以：",
+    "steps": [
+      "登录您的账户",
+      "浏览可用的车辆",
+      "预约租车服务",
+      "享受便捷的租车体验"
+    ],
+    "loginButton": "立即登录",
+    "footer": "感谢您选择 Otaka 租车系统！"
+  },
+  "licenseRejected": {
+    "subject": "驾照审核结果 - Otaka 租车系统",
+    "title": "驾照审核未通过",
+    "greeting": "亲爱的用户，",
+    "message": "很抱歉，您的驾照审核未通过。请查看以下原因并重新上传：",
+    "reason": "审核原因：",
+    "nextSteps": "请按以下步骤操作：",
+    "steps": [
+      "查看审核原因",
+      "重新拍摄清晰的驾照照片",
+      "确保照片完整且清晰可见",
+      "重新上传驾照照片"
+    ],
+    "uploadButton": "重新上传",
+    "footer": "如有疑问，请联系我们的客服团队。"
+  },
+  "adminNotification": {
+    "subject": "新驾照上传通知 - Otaka 租车系统",
+    "title": "有新的驾照需要审核",
+    "message": "用户上传了新的驾照照片，请及时审核。",
+    "userInfo": "用户信息：",
+    "uploadTime": "上传时间：",
+    "reviewButton": "立即审核"
+  }
+}

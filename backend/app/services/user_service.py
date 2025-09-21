@@ -37,7 +37,8 @@ class UserService:
                     asyncio.set_event_loop(loop)
                     loop.run_until_complete(EmailService.send_verification_email(
                         existing_user.email, 
-                        verification_token
+                        verification_token,
+                        user_data.language or "zh-CN"
                     ))
                     loop.close()
                 except Exception as e:
@@ -69,7 +70,8 @@ class UserService:
             asyncio.set_event_loop(loop)
             loop.run_until_complete(EmailService.send_verification_email(
                 db_user.email, 
-                verification_token
+                verification_token,
+                user_data.language or "zh-CN"
             ))
             loop.close()
         except Exception as e:
@@ -212,7 +214,7 @@ class UserService:
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            loop.run_until_complete(EmailService.send_welcome_email(user.email))
+            loop.run_until_complete(EmailService.send_welcome_email(user.email, language=user_data.language or "zh-CN"))
             loop.close()
         except Exception as e:
             print(f"Failed to send welcome email: {e}")
@@ -237,7 +239,8 @@ class UserService:
             asyncio.set_event_loop(loop)
             loop.run_until_complete(EmailService.send_verification_email(
                 user.email, 
-                verification_token
+                verification_token,
+                "zh-CN"  # 重新发送验证邮件默认使用中文
             ))
             loop.close()
             return True

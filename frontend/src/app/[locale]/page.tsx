@@ -47,7 +47,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
           router.push(`/${locale}/dashboard`)
         }, 500)
       } else {
-        await register(email, password)
+        await register(email, password, locale)
         // 注册成功后跳转到验证页面
         mobileToast.success(t('auth.registerSuccess'))
         // 注册成功后滚动到顶部，然后跳转

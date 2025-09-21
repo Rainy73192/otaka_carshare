@@ -1,0 +1,66 @@
+{
+  "welcome": {
+    "subject": "Welcome to Otaka Car Share System",
+    "title": "Welcome to Otaka Car Share!",
+    "greeting": "Dear User,",
+    "message": "Thank you for registering with Otaka Car Share System! Your account has been successfully created.",
+    "nextSteps": "Next Steps:",
+    "steps": [
+      "Log in to your account",
+      "Upload your driver's license photo",
+      "Wait for admin approval",
+      "Start enjoying our car rental service"
+    ],
+    "loginButton": "Login Now",
+    "footer": "If you have any questions, please contact our customer service team."
+  },
+  "verification": {
+    "subject": "Please Verify Your Email - Otaka Car Share System",
+    "title": "Email Verification",
+    "greeting": "Welcome to Otaka Car Share System!",
+    "message": "Thank you for registering with our service! To complete the registration process, please click the button below to verify your email address:",
+    "verifyButton": "Verify Email Address",
+    "fallbackText": "If the button doesn't work, please copy and paste the following link into your browser:",
+    "warning": "Note: This verification link will expire in 24 hours. If you didn't register this account, please ignore this email.",
+    "footer": "This email was sent automatically by the system. Please do not reply."
+  },
+  "licenseApproved": {
+    "subject": "Driver's License Approved - Otaka Car Share System",
+    "title": "Congratulations! Your driver's license has been approved",
+    "greeting": "Dear User,",
+    "message": "We are pleased to inform you that your driver's license has been approved! You can now start using our car rental service.",
+    "nextSteps": "You can now:",
+    "steps": [
+      "Log in to your account",
+      "Browse available vehicles",
+      "Book car rental services",
+      "Enjoy our convenient car rental experience"
+    ],
+    "loginButton": "Login Now",
+    "footer": "Thank you for choosing Otaka Car Share System!"
+  },
+  "licenseRejected": {
+    "subject": "Driver's License Review Result - Otaka Car Share System",
+    "title": "Driver's License Not Approved",
+    "greeting": "Dear User,",
+    "message": "We're sorry, but your driver's license was not approved. Please review the reason below and re-upload:",
+    "reason": "Review Reason:",
+    "nextSteps": "Please follow these steps:",
+    "steps": [
+      "Review the rejection reason",
+      "Take clear photos of your driver's license",
+      "Ensure photos are complete and clearly visible",
+      "Re-upload your driver's license photos"
+    ],
+    "uploadButton": "Re-upload",
+    "footer": "If you have any questions, please contact our customer service team."
+  },
+  "adminNotification": {
+    "subject": "New Driver's License Upload Notification - Otaka Car Share System",
+    "title": "New driver's license needs review",
+    "message": "A user has uploaded new driver's license photos. Please review them promptly.",
+    "userInfo": "User Information:",
+    "uploadTime": "Upload Time:",
+    "reviewButton": "Review Now"
+  }
+}

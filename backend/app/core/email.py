@@ -1,5 +1,6 @@
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from app.core.config import settings
+from app.core.email_templates import email_template_manager
 from typing import List
 import asyncio
 
@@ -33,62 +34,28 @@ else:
 
 class EmailService:
     @staticmethod
-    async def send_welcome_email(user_email: str, user_name: str = None):
+    async def send_welcome_email(user_email: str, user_name: str = None, language: str = "zh-CN"):
         """Send welcome email to new user"""
         if not EMAIL_ENABLED:
-            print(f"📧 [模拟] 发送欢迎邮件到: {user_email}")
+            print(f"📧 [模拟] 发送欢迎邮件到: {user_email} (语言: {language})")
             return True
-            
-        subject = "欢迎注册 Otaka 租车系统"
-        
-        html_content = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                <h1 style="margin: 0; font-size: 28px;">欢迎加入 Otaka 租车！</h1>
-            </div>
-            
-            <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb;">
-                <h2 style="color: #374151; margin-top: 0;">亲爱的用户，</h2>
-                
-                <p style="color: #6b7280; line-height: 1.6; font-size: 16px;">
-                    感谢您注册 Otaka 租车系统！您的账户已成功创建。
-                </p>
-                
-                <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #22c55e;">
-                    <h3 style="color: #374151; margin-top: 0;">下一步操作：</h3>
-                    <ul style="color: #6b7280; line-height: 1.8;">
-                        <li>登录您的账户</li>
-                        <li>上传您的驾照照片</li>
-                        <li>等待管理员审核</li>
-                        <li>开始享受租车服务</li>
-                    </ul>
-                </div>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="http://localhost:3001" 
-                       style="background: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                        立即登录
-                    </a>
-                </div>
-                
-                <p style="color: #9ca3af; font-size: 14px; text-align: center; margin-top: 30px;">
-                    如有任何问题，请联系我们的客服团队。
-                </p>
-            </div>
-        </body>
-        </html>
-        """
-        
-        message = MessageSchema(
-            subject=subject,
-            recipients=[user_email],
-            body=html_content,
-            subtype="html"
-        )
         
         try:
+            # 获取基础URL（从环境变量或配置中）
+            base_url = getattr(settings, 'BASE_URL', 'http://localhost:3001')
+            
+            # 使用模板管理器渲染邮件
+            subject, html_content = email_template_manager.render_welcome_email(language, base_url)
+            
+            message = MessageSchema(
+                subject=subject,
+                recipients=[user_email],
+                body=html_content,
+                subtype="html"
+            )
+            
             await fastmail.send_message(message)
+            print(f"✅ 欢迎邮件发送成功: {user_email} (语言: {language})")
             return True
         except Exception as e:
             print(f"Error sending welcome email: {e}")
@@ -282,67 +249,30 @@ class EmailService:
             return False
     
     @staticmethod
-    async def send_verification_email(user_email: str, verification_token: str):
+    async def send_verification_email(user_email: str, verification_token: str, language: str = "zh-CN"):
         """Send email verification email"""
         if not EMAIL_ENABLED:
-            print(f"📧 [模拟] 发送验证邮件到: {user_email}")
+            print(f"📧 [模拟] 发送验证邮件到: {user_email} (语言: {language})")
             print(f"📧 [模拟] 验证链接: http://localhost:3001/verify-email?token={verification_token}")
             return True
-            
-        subject = "请验证您的邮箱 - Otaka 租车系统"
-        
-        verification_url = f"http://localhost:3001/verify-email?token={verification_token}"
-        
-        html_content = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                <h1 style="margin: 0; font-size: 28px;">邮箱验证</h1>
-            </div>
-            
-            <div style="background: #f8fafc; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e2e8f0;">
-                <h2 style="color: #1e293b; margin-top: 0;">欢迎注册 Otaka 租车系统！</h2>
-                
-                <p style="color: #475569; font-size: 16px; line-height: 1.6;">
-                    感谢您注册我们的服务！为了完成注册流程，请点击下面的按钮验证您的邮箱地址：
-                </p>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="{verification_url}" 
-                       style="background: #3b82f6; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
-                        验证邮箱地址
-                    </a>
-                </div>
-                
-                <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
-                    如果按钮无法点击，请复制以下链接到浏览器中打开：<br>
-                    <a href="{verification_url}" style="color: #3b82f6; word-break: break-all;">{verification_url}</a>
-                </p>
-                
-                <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 15px; margin: 20px 0;">
-                    <p style="color: #92400e; margin: 0; font-size: 14px;">
-                        <strong>注意：</strong>此验证链接将在24小时后过期。如果您没有注册此账户，请忽略此邮件。
-                    </p>
-                </div>
-                
-                <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-                    此邮件由系统自动发送，请勿回复。
-                </p>
-            </div>
-        </body>
-        </html>
-        """
-        
-        message = MessageSchema(
-            subject=subject,
-            recipients=[user_email],
-            body=html_content,
-            subtype="html"
-        )
         
         try:
+            # 获取基础URL
+            base_url = getattr(settings, 'BASE_URL', 'http://localhost:3001')
+            verification_url = f"{base_url}/verify-email?token={verification_token}"
+            
+            # 使用模板管理器渲染邮件
+            subject, html_content = email_template_manager.render_verification_email(language, verification_url)
+            
+            message = MessageSchema(
+                subject=subject,
+                recipients=[user_email],
+                body=html_content,
+                subtype="html"
+            )
+            
             await fastmail.send_message(message)
-            print(f"✅ 验证邮件发送成功: {user_email}")
+            print(f"✅ 验证邮件发送成功: {user_email} (语言: {language})")
             return True
         except Exception as e:
             print(f"发送验证邮件失败: {e}")
