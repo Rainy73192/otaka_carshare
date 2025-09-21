@@ -42,7 +42,12 @@
     "loginYourAccount": "アカウントにログイン",
     "createAccount": "アカウント作成",
     "alreadyHaveAccount": "すでにアカウントをお持ちですか？",
-    "dontHaveAccount": "アカウントをお持ちでないですか？"
+    "dontHaveAccount": "アカウントをお持ちでないですか？",
+    "emailAlreadyRegistered": "メールアドレスは既に登録・認証済みです",
+    "emailAlreadyExists": "メールアドレスは既に存在します",
+    "userNotFound": "ユーザーが見つかりません",
+    "invalidCredentials": "ユーザー名またはパスワードが正しくありません",
+    "accountNotVerified": "アカウントが認証されていません。メールを確認してください"
   },
   "verification": {
     "emailVerification": "メール認証",
@@ -112,5 +117,25 @@
     "copyright": "© 2024 Otaka カーシェアシステム. 全著作権所有。",
     "privacy": "プライバシーポリシー",
     "terms": "利用規約"
+  },
+  "toast": {
+    "licenseFetchError": "免許証情報の取得に失敗しました",
+    "photoAdded": "{side}写真を追加しました",
+    "photoFront": "表面",
+    "photoBack": "裏面",
+    "cameraAccessError": "カメラにアクセスできません。権限設定を確認してください",
+    "selectImageFile": "画像ファイルを選択してください",
+    "fileSizeExceeded": "ファイルサイズは5MBを超えることはできません",
+    "photoTypeError": "写真の種類を特定できません。再試行してください",
+    "uploadBothSides": "免許証の表面と裏面の写真をアップロードしてください",
+    "licenseUploadSuccess": "免許証のアップロードが成功しました！",
+    "uploadFailed": "アップロードに失敗しました",
+    "adminLoginSuccess": "管理者ログインが成功しました！",
+    "loginFailed": "ログインに失敗しました",
+    "invalidCredentials": "ユーザー名またはパスワードが正しくありません",
+    "noAdminPermission": "管理者権限がありません",
+    "licenseListError": "免許証リストの取得に失敗しました",
+    "statusUpdateSuccess": "ステータスが正常に更新されました！",
+    "updateFailed": "更新に失敗しました"
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/lib/auth'
@@ -13,6 +13,7 @@ import { Car, User, Shield, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { mobileScrollToTop } from '@/lib/scrollUtils'
+import { mobileToast, checkAndShowStoredToast, showToastAfterRefresh } from '@/lib/mobileToast'
 
 export default function HomePage({ params }: { params: { locale: string } }) {
   const [isLogin, setIsLogin] = useState(true)
@@ -24,6 +25,14 @@ export default function HomePage({ params }: { params: { locale: string } }) {
   const t = useTranslations()
   const { locale } = params
 
+  // 检查并显示存储的toast消息
+  useEffect(() => {
+    checkAndShowStoredToast()
+  }, [])
+
+  // 检测是否为移动设备
+  const isMobileDevice = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -31,21 +40,21 @@ export default function HomePage({ params }: { params: { locale: string } }) {
     try {
       if (isLogin) {
         await login(email, password)
-        toast.success(t('auth.loginSuccess'))
+        mobileToast.success(t('auth.loginSuccess'))
         // 登录成功后滚动到顶部，然后跳转
         mobileScrollToTop(100)
         setTimeout(() => {
           router.push(`/${locale}/dashboard`)
-        }, 300)
+        }, 500)
       } else {
         await register(email, password)
         // 注册成功后跳转到验证页面
-        toast.success(t('auth.registerSuccess'))
+        mobileToast.success(t('auth.registerSuccess'))
         // 注册成功后滚动到顶部，然后跳转
         mobileScrollToTop(100)
         setTimeout(() => {
           router.push(`/${locale}/register-success`)
-        }, 300)
+        }, 500)
       }
     } catch (error: any) {
       console.error('Auth error:', error)
@@ -54,17 +63,23 @@ export default function HomePage({ params }: { params: { locale: string } }) {
       // 根据错误类型显示不同的提示
       if (error.message) {
         if (error.message.includes('Incorrect email or password')) {
-          errorMessage = t('auth.loginError')
+          errorMessage = t('auth.invalidCredentials')
         } else if (error.message.includes('User not found')) {
-          errorMessage = t('auth.loginError')
+          errorMessage = t('auth.userNotFound')
         } else if (error.message.includes('Invalid credentials')) {
-          errorMessage = t('auth.loginError')
+          errorMessage = t('auth.invalidCredentials')
+        } else if (error.message.includes('Email already registered and verified')) {
+          errorMessage = t('auth.emailAlreadyRegistered')
+        } else if (error.message.includes('Email already exists')) {
+          errorMessage = t('auth.emailAlreadyExists')
+        } else if (error.message.includes('Account not verified')) {
+          errorMessage = t('auth.accountNotVerified')
         } else {
           errorMessage = error.message
         }
       }
       
-      toast.error(errorMessage)
+      mobileToast.error(errorMessage)
     } finally {
       setLoading(false)
     }

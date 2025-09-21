@@ -42,7 +42,12 @@
     "loginYourAccount": "登入您的帳戶",
     "createAccount": "建立帳戶",
     "alreadyHaveAccount": "已有帳戶？",
-    "dontHaveAccount": "沒有帳戶？"
+    "dontHaveAccount": "沒有帳戶？",
+    "emailAlreadyRegistered": "電子郵件已註冊並驗證",
+    "emailAlreadyExists": "電子郵件已存在",
+    "userNotFound": "找不到使用者",
+    "invalidCredentials": "使用者名稱或密碼錯誤",
+    "accountNotVerified": "帳戶未驗證，請檢查電子郵件"
   },
   "verification": {
     "emailVerification": "電子郵件驗證",
@@ -112,5 +117,25 @@
     "copyright": "© 2024 Otaka 租車系統. 保留所有權利。",
     "privacy": "隱私政策",
     "terms": "服務條款"
+  },
+  "toast": {
+    "licenseFetchError": "獲取駕照資訊失敗",
+    "photoAdded": "已新增{side}照片",
+    "photoFront": "正面",
+    "photoBack": "反面",
+    "cameraAccessError": "無法存取攝影機，請檢查權限設定",
+    "selectImageFile": "請選擇圖片檔案",
+    "fileSizeExceeded": "檔案大小不能超過 5MB",
+    "photoTypeError": "無法確定照片類型，請重試",
+    "uploadBothSides": "請上傳駕照正反面照片",
+    "licenseUploadSuccess": "駕照上傳成功！",
+    "uploadFailed": "上傳失敗",
+    "adminLoginSuccess": "管理員登入成功！",
+    "loginFailed": "登入失敗",
+    "invalidCredentials": "使用者名稱或密碼錯誤",
+    "noAdminPermission": "您沒有管理員權限",
+    "licenseListError": "獲取駕照清單失敗",
+    "statusUpdateSuccess": "狀態更新成功！",
+    "updateFailed": "更新失敗"
   }
 }

@@ -30,38 +30,9 @@ export function Button({
     lg: 'px-6 py-3 text-base min-h-[48px]'
   }
 
-  const [isTouchDevice, setIsTouchDevice] = useState(false)
-  const [touchHandled, setTouchHandled] = useState(false)
-
-  // 检测是否为触摸设备
-  useEffect(() => {
-    setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0)
-  }, [])
-
-  // 处理移动端触摸事件
-  const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
-    // 添加触摸反馈
-    e.currentTarget.style.transform = 'scale(0.95)'
-    setTouchHandled(false)
-  }
-
-  const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
-    // 恢复原始大小
-    e.currentTarget.style.transform = 'scale(1)'
-    
-    // 只在触摸设备上处理触摸事件，并阻止点击事件
-    if (isTouchDevice && !touchHandled) {
-      setTouchHandled(true)
-      e.preventDefault() // 阻止点击事件
-      if (onClick) {
-        onClick(e as any)
-      }
-    }
-  }
-
+  // 简化的点击处理
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // 只在非触摸设备上处理点击事件，或者触摸设备上触摸事件未被处理
-    if ((!isTouchDevice || !touchHandled) && onClick) {
+    if (onClick) {
       onClick(e)
     }
   }
@@ -75,8 +46,6 @@ export function Button({
         className
       )}
       onClick={handleClick}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
       style={{
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',

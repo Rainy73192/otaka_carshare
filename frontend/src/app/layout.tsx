@@ -32,13 +32,12 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // 修复被动事件监听器问题
+              // 轻量级移动端优化
               (function() {
-                // 重写addEventListener方法
+                // 只修复滚动相关的被动事件监听器问题
                 const originalAddEventListener = EventTarget.prototype.addEventListener;
                 EventTarget.prototype.addEventListener = function(type, listener, options) {
-                  if (type === 'touchstart' || type === 'touchmove' || type === 'touchend' || 
-                      type === 'wheel' || type === 'scroll') {
+                  if (type === 'touchmove' || type === 'wheel' || type === 'scroll') {
                     if (typeof options === 'object' && options !== null) {
                       options = { ...options, passive: false };
                     } else if (options === undefined) {
@@ -48,23 +47,7 @@ export default function RootLayout({
                   return originalAddEventListener.call(this, type, listener, options);
                 };
 
-                // 重写preventDefault方法
-                const originalPreventDefault = Event.prototype.preventDefault;
-                Event.prototype.preventDefault = function() {
-                  if (this.cancelable === false) {
-                    console.warn('Attempted to call preventDefault() on a passive event, ignoring...');
-                    return;
-                  }
-                  return originalPreventDefault.call(this);
-                };
-
-                // 确保所有触摸事件都不是被动的
-                ['touchstart', 'touchmove', 'touchend', 'touchcancel'].forEach(eventType => {
-                  document.addEventListener(eventType, function() {}, { passive: false, capture: true });
-                  document.addEventListener(eventType, function() {}, { passive: false, capture: false });
-                });
-
-                console.log('Passive event listener fix applied');
+                console.log('Mobile optimization applied');
               })();
             `,
           }}
@@ -74,24 +57,63 @@ export default function RootLayout({
         {children}
         <Toaster
           position="top-center"
+          containerStyle={{
+            top: '20px',
+            zIndex: 9999,
+          }}
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#363636',
+              background: 'rgba(0, 0, 0, 0.9)',
               color: '#fff',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+              fontSize: '16px',
+              fontWeight: '500',
+              padding: '12px 20px',
+              maxWidth: '90vw',
+              wordBreak: 'break-word',
             },
             success: {
               duration: 3000,
+              style: {
+                background: 'rgba(34, 197, 94, 0.95)',
+                color: '#fff',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 8px 32px rgba(34, 197, 94, 0.4)',
+                fontSize: '16px',
+                fontWeight: '500',
+                padding: '12px 20px',
+                maxWidth: '90vw',
+                wordBreak: 'break-word',
+              },
               iconTheme: {
-                primary: '#4ade80',
-                secondary: '#fff',
+                primary: '#fff',
+                secondary: '#22c55e',
               },
             },
             error: {
               duration: 5000,
+              style: {
+                background: 'rgba(239, 68, 68, 0.95)',
+                color: '#fff',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 8px 32px rgba(239, 68, 68, 0.4)',
+                fontSize: '16px',
+                fontWeight: '500',
+                padding: '12px 20px',
+                maxWidth: '90vw',
+                wordBreak: 'break-word',
+              },
               iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
+                primary: '#fff',
+                secondary: '#ef4444',
               },
             },
           }}

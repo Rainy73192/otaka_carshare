@@ -6,6 +6,7 @@ import { Card } from './Card'
 import { Camera, Image, X, RotateCcw, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { mobileScrollToTop } from '@/lib/scrollUtils'
+import { useTranslations } from 'next-intl'
 
 interface CameraUploadProps {
   onFileSelect: (file: File) => void
@@ -15,6 +16,7 @@ interface CameraUploadProps {
 }
 
 export function CameraUpload({ onFileSelect, onClose, isOpen, uploadMode }: CameraUploadProps) {
+  const t = useTranslations()
   const [mode, setMode] = useState<'select' | 'camera' | 'preview'>('select')
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -40,7 +42,7 @@ export function CameraUpload({ onFileSelect, onClose, isOpen, uploadMode }: Came
       }
     } catch (error) {
       console.error('Error accessing camera:', error)
-      toast.error('无法访问摄像头，请检查权限设置')
+      toast.error(t('toast.cameraAccessError'))
     }
   }
 
@@ -84,11 +86,11 @@ export function CameraUpload({ onFileSelect, onClose, isOpen, uploadMode }: Came
     const file = e.target.files?.[0]
     if (file) {
       if (!file.type.startsWith('image/')) {
-        toast.error('请选择图片文件')
+        toast.error(t('toast.selectImageFile'))
         return
       }
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('文件大小不能超过 5MB')
+        toast.error(t('toast.fileSizeExceeded'))
         return
       }
       setSelectedFile(file)

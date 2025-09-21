@@ -12,6 +12,7 @@ import toast from 'react-hot-toast'
 // 移除axios导入，改用fetch
 import { CameraUpload } from '@/components/ui/CameraUpload'
 import { mobileScrollToTop } from '@/lib/scrollUtils'
+import { useTranslations } from 'next-intl'
 
 interface DriverLicense {
   id: number
@@ -29,6 +30,7 @@ export default function DashboardPage({ params }: { params: { locale: string } }
   const { user, logout, loading: authLoading } = useAuth()
   const router = useRouter()
   const { locale } = params
+  const t = useTranslations()
   const [licenses, setLicenses] = useState<DriverLicense[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -68,11 +70,11 @@ export default function DashboardPage({ params }: { params: { locale: string } }
         const data = await response.json()
         setLicenses(data)
       } else if (response.status !== 404) {
-        toast.error('获取驾照信息失败')
+        toast.error(t('toast.licenseFetchError'))
       }
     } catch (error: any) {
       console.error('获取驾照信息错误:', error)
-      toast.error('获取驾照信息失败')
+      toast.error(t('toast.licenseFetchError'))
     } finally {
       setLoading(false)
     }
@@ -253,7 +255,7 @@ export default function DashboardPage({ params }: { params: { locale: string } }
                   console.log('Direct file setting:', newFiles)
                   return newFiles
                 })
-                toast.success(`已添加${mode === 'front' ? '正面' : '反面'}照片`)
+                toast.success(t('toast.photoAdded', { side: mode === 'front' ? t('toast.photoFront') : t('toast.photoBack') }))
               }
               cleanup()
               
@@ -266,7 +268,7 @@ export default function DashboardPage({ params }: { params: { locale: string } }
       
     } catch (error) {
       console.error('Error accessing camera:', error)
-      toast.error('无法访问摄像头，请检查权限设置')
+      toast.error(t('toast.cameraAccessError'))
       setUploadMode(undefined)
     }
   }
@@ -277,11 +279,11 @@ export default function DashboardPage({ params }: { params: { locale: string } }
     
     if (file) {
       if (!file.type.startsWith('image/')) {
-        toast.error('请选择图片文件')
+        toast.error(t('toast.selectImageFile'))
         return
       }
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('文件大小不能超过 5MB')
+        toast.error(t('toast.fileSizeExceeded'))
         return
       }
       if (uploadMode) {
@@ -296,20 +298,20 @@ export default function DashboardPage({ params }: { params: { locale: string } }
         })
         setUploadMode(undefined)
         setShowCameraUpload(false)
-        toast.success(`已添加${uploadMode === 'front' ? '正面' : '反面'}照片`)
+        toast.success(t('toast.photoAdded', { side: uploadMode === 'front' ? t('toast.photoFront') : t('toast.photoBack') }))
         
         // 文件选择完成后自动滚动到页面顶部 - 移动端优化
         mobileScrollToTop(200)
       } else {
         console.error('No uploadMode set, cannot assign file')
-        toast.error('无法确定照片类型，请重试')
+        toast.error(t('toast.photoTypeError'))
       }
     }
   }
 
   const handleUpload = async () => {
     if (!selectedFiles.front || !selectedFiles.back) {
-      toast.error('请上传驾照正反面照片')
+      toast.error(t('toast.uploadBothSides'))
       return
     }
 
@@ -342,7 +344,7 @@ export default function DashboardPage({ params }: { params: { locale: string } }
       if (response.ok) {
         const data = await response.json()
         console.log('上传成功:', data)
-        toast.success('驾照上传成功！')
+        toast.success(t('toast.licenseUploadSuccess'))
         setSelectedFiles({front: null, back: null})
         fetchLicense()
         // 上传成功后滚动到顶部
@@ -355,7 +357,7 @@ export default function DashboardPage({ params }: { params: { locale: string } }
       console.error('上传错误:', error)
       console.error('错误消息:', error.message)
       
-      const errorMessage = error.message || '上传失败'
+      const errorMessage = error.message || t('toast.uploadFailed')
       toast.error(errorMessage)
     } finally {
       setUploading(false)

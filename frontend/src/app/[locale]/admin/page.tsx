@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Shield, Users, FileImage, CheckCircle, XCircle, Clock, LogOut, Search, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 // 移除axios导入，改用fetch
 
 interface User {
@@ -47,6 +48,7 @@ interface CombinedLicense {
 export default function AdminPage() {
   const { user, adminLogin, logout, loading: authLoading } = useAuth()
   const router = useRouter()
+  const t = useTranslations()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -76,14 +78,14 @@ export default function AdminPage() {
 
     try {
       await adminLogin(email, password)
-      toast.success('管理员登录成功！')
+      toast.success(t('toast.adminLoginSuccess'))
     } catch (error: any) {
-      let errorMessage = '登录失败'
+      let errorMessage = t('toast.loginFailed')
       if (error.message) {
         if (error.message.includes('Incorrect email or password')) {
-          errorMessage = '用户名或密码错误'
+          errorMessage = t('toast.invalidCredentials')
         } else if (error.message.includes('not an admin')) {
-          errorMessage = '您没有管理员权限'
+          errorMessage = t('toast.noAdminPermission')
         } else {
           errorMessage = error.message
         }
@@ -114,7 +116,7 @@ export default function AdminPage() {
       }
     } catch (error) {
       console.error('获取驾照列表错误:', error)
-      toast.error('获取驾照列表失败')
+      toast.error(t('toast.licenseListError'))
     }
   }
 
@@ -136,7 +138,7 @@ export default function AdminPage() {
       })
       
       if (response.ok) {
-        toast.success('状态更新成功！')
+        toast.success(t('toast.statusUpdateSuccess'))
         setSelectedLicense(null)
         setAdminNotes('')
         await fetchLicenses()
@@ -146,7 +148,7 @@ export default function AdminPage() {
       }
     } catch (error) {
       console.error('更新状态错误:', error)
-      toast.error('更新失败')
+      toast.error(t('toast.updateFailed'))
     } finally {
       setIsUpdating(false)
     }

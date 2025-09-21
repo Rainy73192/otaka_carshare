@@ -42,7 +42,12 @@
     "loginYourAccount": "登录您的账户",
     "createAccount": "创建账户",
     "alreadyHaveAccount": "已有账户？",
-    "dontHaveAccount": "没有账户？"
+    "dontHaveAccount": "没有账户？",
+    "emailAlreadyRegistered": "邮箱已注册并验证",
+    "emailAlreadyExists": "邮箱已存在",
+    "userNotFound": "用户不存在",
+    "invalidCredentials": "用户名或密码错误",
+    "accountNotVerified": "账户未验证，请检查邮箱"
   },
   "verification": {
     "emailVerification": "邮箱验证",
@@ -112,5 +117,25 @@
     "copyright": "© 2024 Otaka 租车系统. 保留所有权利。",
     "privacy": "隐私政策",
     "terms": "服务条款"
+  },
+  "toast": {
+    "licenseFetchError": "获取驾照信息失败",
+    "photoAdded": "已添加{side}照片",
+    "photoFront": "正面",
+    "photoBack": "反面",
+    "cameraAccessError": "无法访问摄像头，请检查权限设置",
+    "selectImageFile": "请选择图片文件",
+    "fileSizeExceeded": "文件大小不能超过 5MB",
+    "photoTypeError": "无法确定照片类型，请重试",
+    "uploadBothSides": "请上传驾照正反面照片",
+    "licenseUploadSuccess": "驾照上传成功！",
+    "uploadFailed": "上传失败",
+    "adminLoginSuccess": "管理员登录成功！",
+    "loginFailed": "登录失败",
+    "invalidCredentials": "用户名或密码错误",
+    "noAdminPermission": "您没有管理员权限",
+    "licenseListError": "获取驾照列表失败",
+    "statusUpdateSuccess": "状态更新成功！",
+    "updateFailed": "更新失败"
   }
 }

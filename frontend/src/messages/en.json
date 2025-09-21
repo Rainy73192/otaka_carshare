@@ -42,7 +42,12 @@
     "loginYourAccount": "Login to your account",
     "createAccount": "Create account",
     "alreadyHaveAccount": "Already have an account?",
-    "dontHaveAccount": "Don't have an account?"
+    "dontHaveAccount": "Don't have an account?",
+    "emailAlreadyRegistered": "Email already registered and verified",
+    "emailAlreadyExists": "Email already exists",
+    "userNotFound": "User not found",
+    "invalidCredentials": "Invalid username or password",
+    "accountNotVerified": "Account not verified, please check your email"
   },
   "verification": {
     "emailVerification": "Email Verification",
@@ -112,5 +117,25 @@
     "copyright": "© 2024 Otaka Car Share System. All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service"
+  },
+  "toast": {
+    "licenseFetchError": "Failed to fetch license information",
+    "photoAdded": "Added {side} photo",
+    "photoFront": "front",
+    "photoBack": "back",
+    "cameraAccessError": "Cannot access camera, please check permissions",
+    "selectImageFile": "Please select an image file",
+    "fileSizeExceeded": "File size cannot exceed 5MB",
+    "photoTypeError": "Cannot determine photo type, please try again",
+    "uploadBothSides": "Please upload both front and back photos of your license",
+    "licenseUploadSuccess": "License uploaded successfully!",
+    "uploadFailed": "Upload failed",
+    "adminLoginSuccess": "Admin login successful!",
+    "loginFailed": "Login failed",
+    "invalidCredentials": "Invalid username or password",
+    "noAdminPermission": "You don't have admin permissions",
+    "licenseListError": "Failed to fetch license list",
+    "statusUpdateSuccess": "Status updated successfully!",
+    "updateFailed": "Update failed"
   }
 }
