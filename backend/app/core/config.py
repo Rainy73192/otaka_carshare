@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: str = "admin@otaka.com"
     ADMIN_PASSWORD: str = "admin123"
     
+    # Frontend URL
+    BASE_URL: str = "http://localhost:3001"
+    
     # Email settings
     MAIL_USERNAME: str = "your-email@gmail.com"
     MAIL_PASSWORD: str = "your-app-password"

@@ -62,18 +62,21 @@ export function TabsTrigger({ value, children, className, onClick }: TabsTrigger
   const isActive = context.value === value
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // 移除 preventDefault() 以避免被动事件监听器错误
+    e.preventDefault()
+    e.stopPropagation()
     context.onValueChange(value)
     onClick?.()
   }
 
   const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
-    // 移除 preventDefault() 以避免被动事件监听器错误
+    e.preventDefault()
+    e.stopPropagation()
     e.currentTarget.style.transform = 'scale(0.95)'
   }
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
-    // 移除 preventDefault() 以避免被动事件监听器错误
+    e.preventDefault()
+    e.stopPropagation()
     e.currentTarget.style.transform = 'scale(1)'
     context.onValueChange(value)
     onClick?.()

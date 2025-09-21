@@ -7,10 +7,10 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
 const languages = [
-  { code: 'zh-CN', name: '简体中文', flag: '🇨🇳' },
-  { code: 'zh-TW', name: '繁體中文', flag: '🇹🇼' },
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'ja', name: '日本語', flag: '🇯🇵' }
+  { code: 'zh-CN', name: '简体中文' },
+  { code: 'zh-TW', name: '繁體中文' },
+  { code: 'en', name: 'English' },
+  { code: 'ja', name: '日本語' }
 ]
 
 export default function LanguageSwitcher() {
@@ -68,7 +68,6 @@ export default function LanguageSwitcher() {
           className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <Globe className="h-4 w-4" />
-          <span>{currentLanguage.flag}</span>
           <span>{currentLanguage.name}</span>
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -82,11 +81,24 @@ export default function LanguageSwitcher() {
     <div className="relative">
       <button
         ref={buttonRef}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setIsOpen(!isOpen)
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setIsOpen(!isOpen)
+        }}
         className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        style={{
+          WebkitTapHighlightColor: 'transparent',
+          minHeight: '44px',
+          cursor: 'pointer'
+        }}
       >
         <Globe className="h-4 w-4" />
-        <span>{currentLanguage.flag}</span>
         <span>{currentLanguage.name}</span>
         <svg
           className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
@@ -113,15 +125,24 @@ export default function LanguageSwitcher() {
               <button
                 key={language.code}
                 onClick={(e) => {
-                  // 移除 preventDefault() 以避免被动事件监听器错误
+                  e.preventDefault()
                   e.stopPropagation()
                   handleLanguageChange(language.code)
                 }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center space-x-3 ${
+                onTouchEnd={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  handleLanguageChange(language.code)
+                }}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center ${
                   locale === language.code ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
                 }`}
+                style={{
+                  WebkitTapHighlightColor: 'transparent',
+                  minHeight: '44px',
+                  cursor: 'pointer'
+                }}
               >
-                <span className="text-lg">{language.flag}</span>
                 <span>{language.name}</span>
                 {locale === language.code && (
                   <svg className="h-4 w-4 ml-auto text-blue-600" fill="currentColor" viewBox="0 0 20 20">

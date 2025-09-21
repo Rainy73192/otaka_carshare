@@ -46,6 +46,8 @@ services:
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 30
       ADMIN_EMAIL: admin@otaka.com
       ADMIN_PASSWORD: admin123
+      # Frontend URL
+      BASE_URL: https://303749e92ce2.ngrok-free.app
       # Email settings (需要配置真实的邮件服务)
       MAIL_USERNAME: wanglongyu1208@gmail.com
       MAIL_PASSWORD: xwpadpqmuzzupbyk

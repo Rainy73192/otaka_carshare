@@ -140,7 +140,8 @@ class UserService:
                     loop.run_until_complete(EmailService.send_license_uploaded_notification(
                         settings.ADMIN_EMAIL, 
                         user.email if user else "unknown@example.com", 
-                        user_id
+                        user_id,
+                        "zh-CN"  # 管理员通知默认使用中文
                     ))
                     loop.close()
                 except Exception as e:
@@ -174,7 +175,8 @@ class UserService:
             loop.run_until_complete(EmailService.send_license_uploaded_notification(
                 settings.ADMIN_EMAIL, 
                 user.email if user else "unknown@example.com", 
-                user_id
+                user_id,
+                "zh-CN"  # 管理员通知默认使用中文
             ))
             loop.close()
         except Exception as e:
@@ -299,11 +301,12 @@ class UserService:
                 asyncio.set_event_loop(loop)
                 
                 if update_data.status == "approved":
-                    loop.run_until_complete(EmailService.send_license_approved_email(user.email))
+                    loop.run_until_complete(EmailService.send_license_approved_email(user.email, "zh-CN"))
                 elif update_data.status == "rejected":
                     loop.run_until_complete(EmailService.send_license_rejected_email(
                         user.email, 
-                        update_data.admin_notes
+                        update_data.admin_notes,
+                        "zh-CN"
                     ))
                 
                 loop.close()

@@ -23,7 +23,7 @@ export default function RegisterSuccessPage() {
 
     setResending(true)
     try {
-      await axios.post('http://localhost:8001/api/v1/auth/resend-verification', {
+      await axios.post('/api/v1/auth/resend-verification', {
         email: email
       })
       toast.success(t('verification.resendSuccess'))
