@@ -25,7 +25,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
+// 动态获取API URL
+const getApiUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_URL !== undefined) {
+    return process.env.NEXT_PUBLIC_API_URL
+  }
+  
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    if (hostname.includes('ngrok') || hostname.includes('ngrok-free')) {
+      return ''
+    }
+  }
+  return 'http://localhost:8001'
+}
+
+const API_URL = getApiUrl()
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)

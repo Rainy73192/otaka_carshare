@@ -148,7 +148,7 @@ class EmailService:
         """Send email verification email"""
         if not EMAIL_ENABLED:
             print(f"📧 [模拟] 发送验证邮件到: {user_email} (语言: {language})")
-            print(f"📧 [模拟] 验证链接: http://localhost:3001/verify-email?token={verification_token}")
+            print(f"📧 [模拟] 验证链接: {settings.BASE_URL}/verify-email?token={verification_token}")
             return True
         
         try:

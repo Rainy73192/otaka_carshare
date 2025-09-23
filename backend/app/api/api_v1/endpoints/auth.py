@@ -152,7 +152,7 @@ def upload_driver_license(
             )
             print(f"DriverLicenseCreate created successfully: {license_data}")
             
-            driver_license = user_service.create_driver_license(user.id, license_data)
+            driver_license = user_service.create_driver_license(user.id, license_data, send_notification=False)
             print(f"Driver license saved: {driver_license.id}")
             
             uploaded_licenses.append({
@@ -177,6 +177,15 @@ def upload_driver_license(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error uploading {license_type} file: {error_msg}"
             )
+    
+    # Send notification to admin after all licenses are processed
+    if uploaded_licenses:
+        try:
+            user = user_service.get_user_by_email(token_data["sub"])
+            if user:
+                user_service._send_license_notification(user.id)
+        except Exception as e:
+            print(f"Failed to send final license notification: {e}")
     
     return {
         "message": "Driver license uploaded successfully",

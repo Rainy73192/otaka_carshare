@@ -138,8 +138,10 @@ def update_driver_license_status(
     
     # Update all licenses for this user
     updated_licenses = []
-    for license_record in user_licenses:
-        updated_license = user_service.update_driver_license_status(license_record.id, update_data)
+    for i, license_record in enumerate(user_licenses):
+        # Only send email for the last license record to avoid duplicate emails
+        send_email = (i == len(user_licenses) - 1)
+        updated_license = user_service.update_driver_license_status(license_record.id, update_data, send_email=send_email)
         updated_licenses.append(updated_license)
     
     return {

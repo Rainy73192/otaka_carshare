@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Mail, RefreshCw, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
-import axios from 'axios'
+import api from '@/lib/api'
 
 export default function RegisterSuccessPage() {
   const router = useRouter()
@@ -23,13 +23,13 @@ export default function RegisterSuccessPage() {
 
     setResending(true)
     try {
-      await axios.post('/api/v1/auth/resend-verification', {
+      await api.post('/api/v1/auth/resend-verification', {
         email: email
       })
       toast.success(t('verification.resendSuccess'))
     } catch (error: any) {
       console.error('重发邮件错误:', error)
-      toast.error(error.response?.data?.detail || t('verification.resendError'))
+      toast.error(error.message || t('verification.resendError'))
     } finally {
       setResending(false)
     }

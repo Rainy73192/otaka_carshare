@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { CheckCircle, XCircle, Mail, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
-import axios from 'axios'
+import api from '@/lib/api'
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams()
@@ -30,12 +30,12 @@ export default function VerifyEmailPage() {
 
   const verifyEmail = async (token: string) => {
     try {
-      const response = await axios.post('/api/v1/auth/verify-email', {
+      const response = await api.post('/api/v1/auth/verify-email', {
         token: token
       })
       
       setStatus('success')
-      setMessage(response.data.message)
+      setMessage(response.message)
       
       // 3秒后跳转到登录页面
       setTimeout(() => {
@@ -44,7 +44,7 @@ export default function VerifyEmailPage() {
     } catch (error: any) {
       console.error('验证错误:', error)
       setStatus('error')
-      setMessage(error.response?.data?.detail || '验证失败')
+      setMessage(error.message || '验证失败')
     }
   }
 
@@ -56,13 +56,13 @@ export default function VerifyEmailPage() {
 
     setResending(true)
     try {
-      await axios.post('/api/v1/auth/resend-verification', {
+      await api.post('/api/v1/auth/resend-verification', {
         email: email
       })
       toast.success(t('verification.resendSuccess'))
     } catch (error: any) {
       console.error('重发邮件错误:', error)
-      toast.error(error.response?.data?.detail || t('verification.resendError'))
+      toast.error(error.message || t('verification.resendError'))
     } finally {
       setResending(false)
     }
@@ -95,9 +95,70 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <Card className="p-8">
+    <>
+      {/* ngrok警告跳过脚本 */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            // 跳过ngrok警告页面
+            if (window.location.hostname.includes('ngrok')) {
+              const warningBanner = document.querySelector('[data-testid="banner"]') || 
+                                   document.querySelector('.banner') ||
+                                   document.querySelector('[class*="warning"]') ||
+                                   document.querySelector('[class*="banner"]');
+              if (warningBanner) {
+                warningBanner.style.display = 'none';
+              }
+              
+              // 添加ngrok跳过头部
+              if (typeof fetch !== 'undefined') {
+                const originalFetch = window.fetch;
+                window.fetch = function(...args) {
+                  if (args[1]) {
+                    args[1].headers = {
+                      ...args[1].headers,
+                      'ngrok-skip-browser-warning': 'true'
+                    };
+                  } else {
+                    args[1] = {
+                      headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                      }
+                    };
+                  }
+                  return originalFetch.apply(this, args);
+                };
+              }
+            }
+          `,
+        }}
+      />
+      <div 
+        className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ios-fix"
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#f9fafb',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '48px 16px',
+          fontFamily: 'system-ui, -apple-system, sans-serif'
+        }}
+      >
+      <div 
+        className="max-w-md w-full space-y-8"
+        style={{ maxWidth: '448px', width: '100%' }}
+      >
+        <Card 
+          className="p-8 ios-fix"
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            padding: '32px',
+            border: '1px solid #e5e7eb'
+          }}
+        >
           <div className="text-center">
             <div className="flex justify-center">
               {getStatusIcon()}
@@ -209,5 +270,6 @@ export default function VerifyEmailPage() {
         </Card>
       </div>
     </div>
+    </>
   )
 }

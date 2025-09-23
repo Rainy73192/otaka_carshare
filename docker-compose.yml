@@ -47,7 +47,7 @@ services:
       ADMIN_EMAIL: admin@otaka.com
       ADMIN_PASSWORD: admin123
       # Frontend URL
-      BASE_URL: https://303749e92ce2.ngrok-free.app
+      BASE_URL: https://f694567c7a15.ngrok-free.app
       # Email settings (需要配置真实的邮件服务)
       MAIL_USERNAME: wanglongyu1208@gmail.com
       MAIL_PASSWORD: xwpadpqmuzzupbyk
@@ -79,7 +79,7 @@ services:
       dockerfile: Dockerfile
       no_cache: true
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8001
+      NEXT_PUBLIC_API_URL: ""
     ports:
       - "3001:3000"
     depends_on:

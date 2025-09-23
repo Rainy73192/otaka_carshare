@@ -1,5 +1,10 @@
 // 动态获取API URL
 const getApiUrl = () => {
+  // 优先检查环境变量（包括空字符串）
+  if (process.env.NEXT_PUBLIC_API_URL !== undefined) {
+    return process.env.NEXT_PUBLIC_API_URL
+  }
+  
   if (typeof window !== 'undefined') {
     // 在浏览器环境中
     const hostname = window.location.hostname
@@ -8,7 +13,7 @@ const getApiUrl = () => {
       return ''
     }
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
+  return 'http://localhost:8001'
 }
 
 const API_URL = getApiUrl()

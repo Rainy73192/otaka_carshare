@@ -1,5 +1,8 @@
 const withNextIntl = require('next-intl/plugin')(
-  './src/i18n.ts'
+  './src/i18n.ts',
+  {
+    _next_intl_trailing_slash: 'never'
+  }
 );
 
 /** @type {import('next').NextConfig} */
@@ -8,9 +11,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: process.env.NODE_ENV === 'production' 
-          ? 'http://backend:8000/api/:path*'
-          : 'http://localhost:8001/api/:path*',
+        destination: 'http://backend:8000/api/:path*',
       },
     ];
   },
@@ -35,6 +36,10 @@ const nextConfig = {
           {
             key: 'Expires',
             value: '0',
+          },
+          {
+            key: 'ngrok-skip-browser-warning',
+            value: 'true',
           },
         ],
       },
